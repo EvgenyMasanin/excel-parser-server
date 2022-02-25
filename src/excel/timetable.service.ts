@@ -10,6 +10,7 @@ import {
   Merge,
   Merges,
   Semester,
+  SemestersTranslations,
   Timetable,
   WeekDays,
   weekDays,
@@ -72,12 +73,11 @@ export class TimetableService {
     this.merges = merges
     this.table = table
 
-    const Semester: Semester = 'first'
-    const Course: CourseNum = 4
-
     const lessonsMerges = this.merges.filter(
       (merge) => +merge.s.c === this.exlHlpSrv.getNumOfColumn('B')
     )
+
+    const { course, semester } = this.getCourseAndSemester()
 
     this.setGroups()
 
@@ -122,33 +122,27 @@ export class TimetableService {
               [group]: [
                 {
                   up: lessonName,
-                  down: this.isCurrentJointLessonPerWeek
-                    ? lessonName
-                    : isLessonPerWeek
-                    ? lessonName
-                    : null,
-                  semester: Semester,
-                  course: Course,
+                  down:
+                    this.isCurrentJointLessonPerWeek || isLessonPerWeek
+                      ? lessonName
+                      : null,
+                  semester: semester,
+                  course: course,
                 },
               ],
             })
-          } else if (
-            !this.timetable[WeekDays[this.dayOfWeek]][Lessons[lessonNumber]][
-              group
-            ]
-          ) {
+          } else if (!this.hasGroupData(lessonNumber, group)) {
             this.timetable[WeekDays[this.dayOfWeek]][Lessons[lessonNumber]][
               group
             ] = [
               {
                 up: lessonName,
-                down: this.isCurrentJointLessonPerWeek
-                  ? lessonName
-                  : isLessonPerWeek
-                  ? lessonName
-                  : null,
-                semester: Semester,
-                course: Course,
+                down:
+                  this.isCurrentJointLessonPerWeek || isLessonPerWeek
+                    ? lessonName
+                    : null,
+                semester: semester,
+                course: course,
               },
             ]
           } else {
@@ -167,7 +161,6 @@ export class TimetableService {
           )
 
           this.setCurrentJointLesson(rowNumber, rowContent, columnName1, index)
-          console.log(this.currentJointLesson)
 
           const { lessonName: lessonName1, isLessonPerWeek: isLessonPerWeek1 } =
             this.setLessonName(rowNumber, rowContent, columnName1)
@@ -179,23 +172,21 @@ export class TimetableService {
               [group]: [
                 {
                   up: lessonName1,
-                  down: this.isCurrentJointLessonPerWeek
-                    ? lessonName1
-                    : isLessonPerWeek1
-                    ? lessonName1
-                    : null,
-                  semester: Semester,
-                  course: Course,
+                  down:
+                    this.isCurrentJointLessonPerWeek || isLessonPerWeek1
+                      ? lessonName1
+                      : null,
+                  semester: semester,
+                  course: course,
                 },
                 {
                   up: lessonName2,
-                  down: this.isCurrentJointLessonPerWeek
-                    ? lessonName2
-                    : isLessonPerWeek2
-                    ? lessonName2
-                    : null,
-                  semester: Semester,
-                  course: Course,
+                  down:
+                    this.isCurrentJointLessonPerWeek || isLessonPerWeek2
+                      ? lessonName2
+                      : null,
+                  semester: semester,
+                  course: course,
                 },
               ],
             })
@@ -205,23 +196,21 @@ export class TimetableService {
             ] = [
               {
                 up: lessonName1,
-                down: this.isCurrentJointLessonPerWeek
-                  ? lessonName1
-                  : isLessonPerWeek1
-                  ? lessonName1
-                  : null,
-                semester: Semester,
-                course: Course,
+                down:
+                  this.isCurrentJointLessonPerWeek || isLessonPerWeek1
+                    ? lessonName1
+                    : null,
+                semester: semester,
+                course: course,
               },
               {
                 up: lessonName2,
-                down: this.isCurrentJointLessonPerWeek
-                  ? lessonName2
-                  : isLessonPerWeek2
-                  ? lessonName2
-                  : null,
-                semester: Semester,
-                course: Course,
+                down:
+                  this.isCurrentJointLessonPerWeek || isLessonPerWeek2
+                    ? lessonName2
+                    : null,
+                semester: semester,
+                course: course,
               },
             ]
           } else {
@@ -250,7 +239,7 @@ export class TimetableService {
     rowNumber: string,
     rowContent: ITableRow,
     columnName: string
-  ) {
+  ): { lessonName: string | null; isLessonPerWeek: boolean } {
     const ceilData = rowContent[columnName]
 
     if (this.currentJointLesson)
@@ -305,6 +294,20 @@ export class TimetableService {
       this.groupNames.push(groupName)
       this.groupNamesMerge.push(merge || defaultMerge)
     })
+  }
+
+  private getCourseAndSemester(): { semester: Semester; course: CourseNum } {
+    const rowNum = 4
+
+    return {
+      semester:
+        SemestersTranslations[
+          Object.entries(this.table[rowNum + 1])[0][1].split(' ')[1]
+        ],
+      course: +Object.entries(this.table[rowNum])[0][1].match(
+        /\d/
+      )[0] as CourseNum,
+    }
   }
 
   private setCurrentJointLesson(

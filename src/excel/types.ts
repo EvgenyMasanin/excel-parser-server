@@ -1,4 +1,8 @@
 export type Semester = 'first' | 'second'
+export enum SemestersTranslations {
+  'осенний' = 'first',
+  'весенний' = 'second',
+}
 
 export type obj = { [key: string]: any }
 

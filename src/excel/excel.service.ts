@@ -1,5 +1,4 @@
 import { TimetableService } from './timetable.service'
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Injectable } from '@nestjs/common'
 import xlsx from 'xlsx'
 import { ExcelHelperService } from './excel-helper.service'
@@ -12,7 +11,7 @@ export class ExcelService {
   ) {}
 
   getTimeTable() {
-    const file = 'src/static/ATF_2.xlsx'
+    const file = 'src/static/ATF_3.xlsx'
     const table = xlsx.readFile(file)
     const timeTable = this.timetableService.getTimetable(
       this.excelHelperService.toTableFormat(table.Sheets['Table 1']),

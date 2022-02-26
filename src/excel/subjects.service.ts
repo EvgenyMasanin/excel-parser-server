@@ -68,7 +68,6 @@ export class SubjectsService {
       },
       hoursPerSemester: null,
     }
-    console.log(subject)
 
     if (this.excelHelperService.toNumber(columns.G ?? 0) !== 0) {
       subject.groups[groupName].hoursPerWeek.laboratory.push(
@@ -116,11 +115,9 @@ export class SubjectsService {
       (subj) => subj.name === this.formatSubjectName(realColumns.B!)
     )!
     if (this.excelHelperService.toNumber(columns.G ?? 0) !== 0)
-      console.log(subject.groups, groupName)
-
-    subject.groups[groupName].hoursPerWeek.laboratory.push(
-      this.excelHelperService.toNumber(columns.G ?? 0)
-    )
+      subject.groups[groupName].hoursPerWeek.laboratory.push(
+        this.excelHelperService.toNumber(columns.G ?? 0)
+      )
     if (this.excelHelperService.toNumber(columns.J ?? 0) !== 0)
       subject.groups[groupName].hoursPerWeek.practice.push(
         this.excelHelperService.toNumber(columns.J ?? 0)
@@ -179,28 +176,6 @@ export class SubjectsService {
       if (fsnArr?.length !== ssnArr?.length) return false
       return fsnArr?.every((fsn, i) => fsn?.startsWith(ssnArr?.[i]))
     }
-    const a = 'Информатика'?.toLowerCase().split(' ')
-    const b = 'И  С  Т  О  Р  И  Я      Б Е Л А Р У С И'
-      ?.toLowerCase()
-      .split(/\s|\./)
-      .filter(Boolean)
-
-    // if (firstSubjectName === secondSubjectName) {
-    //   console.log(firstSubject, '---', secondSubject, '1')
-    // }
-    // if (isSameFullName(firstSubjectName, secondSubjectName)) {
-    //   console.log(firstSubject, '---', secondSubject, '2')
-    // }
-    // if (
-    //   firstSubjectAbbreviation.some((ab) =>
-    //     secondSubjectAbbreviation.includes(ab)
-    //   )
-    // ) {
-    //   console.log(firstSubject, '---', secondSubject, '3')
-    // }
-    // if (firstSubjectAbbreviation.includes(secondSubjectName)) {
-    //   console.log(firstSubject, '---', secondSubject, '4')
-    // }
 
     return (
       firstSubjectName === secondSubjectName ||
@@ -215,9 +190,11 @@ export class SubjectsService {
   getSubjectNameAndAbbreviation(
     str: string
   ): [name: string, abbreviations: string[]] {
-    const name = str?.slice(0, str.indexOf('(')).trim()
+    const name = str
+      ?.slice(0, str.includes('(') ? str.indexOf('(') : str.length)
+      .trim()
     const abbreviations: string[] = []
-    const words = name?.split(' ')
+    const words = name?.split(/\s|-/)
 
     abbreviations.push(
       words
@@ -233,7 +210,6 @@ export class SubjectsService {
         .join('')
         .toLocaleLowerCase()
     )
-
     // console.log(name, abbreviations)
 
     return [name?.toLowerCase(), abbreviations]
@@ -243,7 +219,7 @@ export class SubjectsService {
     return str.split('').every((letter) => letter.match(/[A-ZА-Я]/))
   }
 
-  private formatSubjectName(subjectName: string) {
+  formatSubjectName(subjectName: string) {
     return subjectName?.split('(')[0].trim()
   }
 

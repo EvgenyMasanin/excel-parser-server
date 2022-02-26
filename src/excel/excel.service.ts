@@ -72,7 +72,6 @@ export class ExcelService {
       timeTable
     )
 
-    // return teachersPayload
     return testDataTeachers
   }
 
@@ -83,6 +82,7 @@ export class ExcelService {
     const file4 = 'src/static/ATF_4_new.xlsx'
     const file5 = 'src/static/ATF_5.xlsx'
     const files = [file1, file2, file3, file4, file5]
+
     return files.map((file) => {
       const table = xlsx.readFile(file)
       const timeTable = this.timetableService.getTimetable(

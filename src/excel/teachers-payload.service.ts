@@ -1,3 +1,4 @@
+import { SubjectsService } from './subjects.service'
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Injectable } from '@nestjs/common'
 import { ExcelHelperService } from './excel-helper.service'
@@ -5,7 +6,10 @@ import { ITable, Semester, ITeacherPayload, ISubjectPayload } from './types'
 
 @Injectable()
 export class TeachersPayloadService {
-  constructor(private readonly excelHelperService: ExcelHelperService) {}
+  constructor(
+    private readonly excelHelperService: ExcelHelperService,
+    private readonly subjectsService: SubjectsService
+  ) {}
 
   getTeachersPayload(tableData: ITable) {
     return this.createData(tableData)
@@ -34,7 +38,7 @@ export class TeachersPayloadService {
         }
         if (columns.B && currentTeacher) {
           const subjectPayload: ISubjectPayload = {
-            subjectName: columns.B!,
+            subjectName: this.subjectsService.formatSubjectName(columns.B!),
             semester,
             countOfHours: {
               lectures: +columns.G || 0,

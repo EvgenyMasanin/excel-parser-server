@@ -16,8 +16,6 @@ export interface GroupData {
   hoursPerWeek: ISubjectHours
   subGroups: Array<
     Array<{
-      // up: string | null
-      // down: string | null
       type: WeekType
       weekDay: DayOfWeek
       lessonNumber: number

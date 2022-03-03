@@ -121,7 +121,7 @@ export class TeachersService {
     semester: Semester
   ) {
     const { name, position } = this.getTeacherInfo(columns.F)
-    let subject
+    let subject: ISubject
     if (name) {
       const groups: string[] = []
       let i = row

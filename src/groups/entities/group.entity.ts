@@ -1,5 +1,5 @@
-import { Timetable } from 'src/timetable/entities/timetable.entity'
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
+import { Timetable } from 'src/timetable/entities/timetable.entity'
 
 @Entity()
 export class Group {

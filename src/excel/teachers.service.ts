@@ -14,6 +14,7 @@ import {
   ITeacher,
   Semester,
   Timetable,
+  SubjectTypes,
 } from './types'
 
 @Injectable()
@@ -208,8 +209,10 @@ export class TeachersService {
     weekDay: DayOfWeek,
     lessonNumber: number
   ) {
-    const typeOfSubject1 = this.getTypeOfSubject(subGroupData.up)
-    const typeOfSubject2 = this.getTypeOfSubject(subGroupData.down)
+    const typeOfSubject1 = this.subjectService.getTypeOfSubject(subGroupData.up)
+    const typeOfSubject2 = this.subjectService.getTypeOfSubject(
+      subGroupData.down
+    )
 
     const subjectHours1 = [...groupData.hoursPerWeek[typeOfSubject1]]
     const subjectHours2 = [...groupData.hoursPerWeek[typeOfSubject2]]
@@ -238,18 +241,12 @@ export class TeachersService {
 
     if (shouldPush && type && lessonName) {
       groupData.subGroups[subGroupNumber].push({
-        weekDay,
-        lessonNumber,
         type,
+        weekDay,
         lessonName,
+        lessonNumber,
       })
     }
-  }
-
-  getTypeOfSubject(subjectName: string): 'lecture' | 'practice' | 'laboratory' {
-    if (subjectName?.match(/\(лек\.\)/)) return 'lecture'
-    if (subjectName?.match(/\(пр\.\)/)) return 'practice'
-    else return 'laboratory'
   }
 
   mergeTeachers = (
@@ -278,7 +275,7 @@ export class TeachersService {
     const strData = str.split(',')
     return {
       name: strData[1]?.trim(),
-      position: strData[0],
+      position: strData[0] || null,
     }
   }
 

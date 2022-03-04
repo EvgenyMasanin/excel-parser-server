@@ -1,30 +1,26 @@
+import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
+import { Teacher } from './teacher.entity'
 import { Subject } from 'src/subjects/entities/subject.entity'
 import { Timetable } from 'src/timetable/entities/timetable.entity'
-import {
-  Column,
-  Entity,
-  ManyToOne,
-  OneToMany,
-  PrimaryGeneratedColumn,
-} from 'typeorm'
-import { Teacher } from './teacher.entity'
 
 @Entity()
 export class TeacherToSubject {
   @PrimaryGeneratedColumn()
-  public id!: number
+  id: number
 
   @Column()
-  public teacherId!: number
+  teacherId: number
 
   @Column()
-  public subjectId!: number
+  subjectId: number
 
   @ManyToOne(() => Teacher, (teacher) => teacher.teacherToSubject)
-  public teacher: Teacher
+  @JoinColumn({ name: 'teacherId' })
+  teacher: Teacher
 
   @ManyToOne(() => Subject, (subject) => subject.teacherToSubject)
-  public subject: Subject
+  @JoinColumn({ name: 'subjectId' })
+  subject: Subject
 
   @OneToMany(() => Timetable, (timetable) => timetable.teacherToSubject)
   timetables: Timetable[]

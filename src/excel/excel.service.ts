@@ -5,6 +5,7 @@ import { ExcelHelperService } from './excel-helper.service'
 import { TeachersService } from './teachers.service'
 import { SubjectsService } from './subjects.service'
 import { TeachersPayloadService } from './teachers-payload.service'
+import { ExcelRepositoryService } from './excel-repository.service'
 
 @Injectable()
 export class ExcelService {
@@ -13,7 +14,8 @@ export class ExcelService {
     private readonly teachersService: TeachersService,
     private readonly subjectService: SubjectsService,
     private readonly teachersPayloadService: TeachersPayloadService,
-    private readonly timetableService: TimetableService
+    private readonly timetableService: TimetableService,
+    private readonly excelRepositoryService: ExcelRepositoryService
   ) {}
 
   getStaffInfoTest() {
@@ -71,6 +73,8 @@ export class ExcelService {
       teachers1,
       timeTable
     )
+
+    await this.excelRepositoryService.saveToDB(testDataTeachers)
 
     return testDataTeachers
   }

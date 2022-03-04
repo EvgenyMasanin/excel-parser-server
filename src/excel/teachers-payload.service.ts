@@ -41,7 +41,7 @@ export class TeachersPayloadService {
             subjectName: this.subjectsService.formatSubjectName(columns.B!),
             semester,
             countOfHours: {
-              lectures: +columns.G || 0,
+              lecture: +columns.G || 0,
               laboratory: +columns.H || 0,
               practice: +columns.I || 0,
             },

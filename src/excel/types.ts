@@ -18,8 +18,8 @@ export interface GroupData {
     Array<{
       type: WeekType
       weekDay: DayOfWeek
-      lessonNumber: number
       lessonName: string
+      lessonNumber: number
     }>
   >
 }
@@ -31,7 +31,7 @@ export interface ISubject {
     [groupName: string]: GroupData
   }
   hoursPerSemester: {
-    lectures: number
+    lecture: number
     laboratory: number
     practice: number
   } | null
@@ -104,7 +104,7 @@ export interface ISubjectPayload {
   subjectName: string
   semester: Semester
   countOfHours: {
-    lectures: number
+    lecture: number
     laboratory: number
     practice: number
   }
@@ -115,13 +115,7 @@ export interface ITeacherPayload {
   subjects: ISubjectPayload[]
 }
 
-export type DayOfWeek =
-  | 'Понедельник'
-  | 'Вторник'
-  | 'Среда'
-  | 'Четверг'
-  | 'Пятница'
-  | 'Суббота'
+export type DayOfWeek = 'Понедельник' | 'Вторник' | 'Среда' | 'Четверг' | 'Пятница' | 'Суббота'
 
 export const weekDays: Array<DayOfWeek> = [
   'Понедельник',
@@ -167,3 +161,9 @@ export enum Lessons {
 }
 
 export type WeekType = 'up' | 'down' | 'up/down'
+
+export enum SubjectTypes {
+  'Lecture' = 'lecture',
+  'Practice' = 'practice',
+  'Laboratory' = 'laboratory',
+}

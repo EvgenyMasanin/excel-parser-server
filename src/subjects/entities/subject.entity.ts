@@ -9,9 +9,6 @@ export class Subject {
   @Column({ unique: true })
   name: string
 
-  @OneToMany(
-    () => TeacherToSubject,
-    (teacherToSubject) => teacherToSubject.subject
-  )
-  public teacherToSubject: TeacherToSubject[]
+  @OneToMany(() => TeacherToSubject, (teacherToSubject) => teacherToSubject.subject)
+  teacherToSubject: TeacherToSubject[]
 }

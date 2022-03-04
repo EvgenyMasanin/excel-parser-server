@@ -9,6 +9,7 @@ import {
   ITableRow,
   ITeacher,
   Semester,
+  SubjectTypes,
 } from './types'
 import { ITeacherPayload } from './types'
 
@@ -236,5 +237,21 @@ export class SubjectsService {
         }
       })
       .join('')
+  }
+
+  getTypeOfSubject(subjectName: string): SubjectTypes {
+    if (subjectName?.match(/\(лек\.\)/)) return SubjectTypes.Lecture
+    if (subjectName?.match(/\(пр\.\)/)) return SubjectTypes.Practice
+    else return SubjectTypes.Laboratory
+  }
+
+  getAuditoriumAndCampus(subjectName: string): {
+    auditorium: number | null
+    campus: number | null
+  } {
+    const auditorium =
+      +subjectName.match(/а\.?\s*\d+/)?.[0].split(/а\.?\s*/)[1] || null
+    const campus = +subjectName.match(/\/\d+/)?.[0].slice(1) || null
+    return { auditorium, campus }
   }
 }

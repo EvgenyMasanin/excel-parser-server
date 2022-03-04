@@ -1,12 +1,4 @@
-import { Subject } from 'src/subjects/entities/subject.entity'
-import {
-  Column,
-  Entity,
-  PrimaryGeneratedColumn,
-  ManyToMany,
-  JoinTable,
-  OneToMany,
-} from 'typeorm'
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm'
 import { TeacherToSubject } from './teacher-to-subject.entity'
 
 @Entity()
@@ -20,7 +12,7 @@ export class Teacher {
   @Column({ nullable: true })
   fullName: string
 
-  @Column()
+  @Column({ nullable: true })
   position: string
 
   @Column({ nullable: true })
@@ -30,5 +22,5 @@ export class Teacher {
     () => TeacherToSubject,
     (teacherToSubject) => teacherToSubject.teacher
   )
-  public teacherToSubject: TeacherToSubject[]
+  teacherToSubject: TeacherToSubject[]
 }

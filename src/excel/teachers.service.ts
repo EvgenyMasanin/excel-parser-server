@@ -1,8 +1,6 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Injectable } from '@nestjs/common'
 import { SubjectsService } from './subjects.service'
 import {
-  DayOfWeek,
   GroupData,
   ITableRow,
   SubGroupData,
@@ -14,7 +12,7 @@ import {
   ITeacher,
   Semester,
   Timetable,
-  SubjectTypes,
+  WeekDaysEN,
 } from './types'
 
 @Injectable()
@@ -37,7 +35,7 @@ export class TeachersService {
       if (!columns.I && !columns.F && !columns.L) return
 
       const { name, position } = this.getTeacherInfo(
-        columns.I ? columns.I : columns.L! ? columns.L! : columns.F!
+        columns.I ? columns.I : columns.L ? columns.L : columns.F
       )
 
       const { lectorName, lectorPosition, lectorSubject } = this.getLector(
@@ -127,7 +125,7 @@ export class TeachersService {
       const groups: string[] = []
       let i = row
       do {
-        groups.push(this.subjectService.formatGroupName(table[i].C!))
+        groups.push(this.subjectService.formatGroupName(table[i].C))
         i += 2
       } while (table[i]?.C && !table[i]?.B)
 
@@ -183,7 +181,7 @@ export class TeachersService {
                             groupData,
                             subGroupData,
                             subGroupNumber,
-                            weekDay as DayOfWeek,
+                            weekDay as WeekDaysEN,
                             lessonNumber + 1
                           )
                         }
@@ -206,7 +204,7 @@ export class TeachersService {
     groupData: GroupData,
     subGroupData: SubGroupData,
     subGroupNumber: number,
-    weekDay: DayOfWeek,
+    weekDay: WeekDaysEN,
     lessonNumber: number
   ) {
     const typeOfSubject1 = this.subjectService.getTypeOfSubject(subGroupData.up)

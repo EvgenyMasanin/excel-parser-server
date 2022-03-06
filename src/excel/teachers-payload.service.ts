@@ -1,6 +1,5 @@
-import { SubjectsService } from './subjects.service'
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Injectable } from '@nestjs/common'
+import { SubjectsService } from './subjects.service'
 import { ExcelHelperService } from './excel-helper.service'
 import { ITable, Semester, ITeacherPayload, ISubjectPayload } from './types'
 
@@ -24,7 +23,7 @@ export class TeachersPayloadService {
     try {
       Object.entries(table).forEach(([, columns]) => {
         if (this.excelHelperService.isFullName(columns.B)) {
-          currentTeacher = { fullName: columns.B!, subjects: [] }
+          currentTeacher = { fullName: columns.B, subjects: [] }
           teachers.push(currentTeacher)
           semester = 'first'
           return
@@ -38,7 +37,7 @@ export class TeachersPayloadService {
         }
         if (columns.B && currentTeacher) {
           const subjectPayload: ISubjectPayload = {
-            subjectName: this.subjectsService.formatSubjectName(columns.B!),
+            subjectName: this.subjectsService.formatSubjectName(columns.B),
             semester,
             countOfHours: {
               lecture: +columns.G || 0,

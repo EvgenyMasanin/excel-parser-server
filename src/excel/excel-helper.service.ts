@@ -1,37 +1,25 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 import { Injectable } from '@nestjs/common'
-import { ITable, obj } from './types'
+import { WorkSheet } from 'xlsx'
+import { ITable } from './types'
 
-type ColumnName =
-  | 'A'
-  | 'B'
-  | 'C'
-  | 'D'
-  | 'E'
-  | 'G'
-  | 'H'
-  | 'I'
-  | 'J'
-  | 'K'
-  | 'L'
-  | 'M'
+type ColumnName = 'A' | 'B' | 'C' | 'D' | 'E' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M'
 
 @Injectable()
 export class ExcelHelperService {
-  toTableFormat(data: obj): ITable {
+  toTableFormat(data: WorkSheet): ITable {
     const staffData = Object.keys(data).reduce((accum, key) => {
       if (!['!margins', '!merges'].includes(key)) {
         accum[key] = data[key]
       }
       return accum
-    }, {} as obj)
+    }, {} as Omit<WorkSheet, '!margins' | '!merges'>)
 
     const table = {} as ITable
     Object.keys(staffData).forEach((key) => {
       const row = this.getNumOfRow(key)
       const column = this.getColumnName(key)
-      table[row!] = { ...table[row!] }
-      table[row!][column!] = staffData[key!].v as never
+      table[row] = { ...table[row] }
+      table[row][column] = staffData[key].v as never
     })
     return table
   }
@@ -48,7 +36,6 @@ export class ExcelHelperService {
   }
 
   private getColumnName(str: string): ColumnName {
-    //   str.match(/[A-Z]/g)?.join('')
     return str[0] as ColumnName
   }
 
@@ -56,11 +43,11 @@ export class ExcelHelperService {
     return colName.charCodeAt(0) - 65
   }
 
-  getNameOfColumn(num: number) {
+  getNameByColumnNum(num: number) {
     return String.fromCharCode(num + 65)
   }
 
   isFullName(str: string) {
-    return Boolean(`${str}`.match(/[А-Я][а-я]+\s+[А-Я]\.[А-Я]\./))
+    return Boolean(str?.match(/[А-Я][а-я]+\s+[А-Я]\.[А-Я]\./))
   }
 }

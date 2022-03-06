@@ -1,7 +1,20 @@
 import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { Group } from 'src/groups/entities/group.entity'
 import { TeacherToSubject } from 'src/teachers/entities/teacher-to-subject.entity'
-import { DayOfWeek, SubjectTypes, Semester, WeekDays, WeekType } from 'src/excel/types'
+import {
+  WeekDaysRU,
+  SubjectTypes,
+  Semester,
+  WeekDaysMap,
+  WeekType,
+  weekDaysRU,
+  WeekDaysEN,
+  subjectTypes,
+  SubgroupNumber,
+  subgroupNumber,
+  semester,
+  weekType,
+} from 'src/excel/types'
 
 @Entity()
 export class Timetable {
@@ -22,13 +35,13 @@ export class Timetable {
   @JoinColumn({ name: 'groupId' })
   group: Group
 
-  @Column('enum', { enum: [1, 2] })
-  subGroupNum: 1 | 2
+  @Column('enum', { enum: SubgroupNumber })
+  subGroupNum: subgroupNumber
 
-  @Column('enum', { enum: WeekDays })
-  weekDay: DayOfWeek
+  @Column('enum', { enum: WeekDaysMap })
+  weekDay: WeekDaysEN
 
-  @Column('enum', { enum: SubjectTypes })
+  @Column('enum', { enum: subjectTypes })
   type: SubjectTypes
 
   @Column({ nullable: true })
@@ -37,7 +50,7 @@ export class Timetable {
   @Column({ nullable: true, type: 'float' })
   hoursPerWeek: number
 
-  @Column('enum', { enum: ['first', 'second'] })
+  @Column('enum', { enum: semester })
   semester: Semester
 
   @Column()
@@ -46,7 +59,7 @@ export class Timetable {
   @Column()
   lessonNumber: number
 
-  @Column('enum', { enum: ['up', 'down', 'up/down'] })
+  @Column('enum', { enum: weekType })
   weekType: WeekType
 
   @Column({ nullable: true })

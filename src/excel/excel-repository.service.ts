@@ -1,15 +1,14 @@
-import { CourseNum } from 'src/excel/types'
 import { Injectable } from '@nestjs/common'
-import { Teacher } from 'src/teachers/entities/teacher.entity'
 import { InjectRepository } from '@nestjs/typeorm'
-import { Subject } from 'src/subjects/entities/subject.entity'
-import { Group } from 'src/groups/entities/group.entity'
-import { Timetable } from 'src/timetable/entities/timetable.entity'
-import { ITeacher } from './types'
 import { Repository } from 'typeorm'
+import { SubjectsService } from './subjects.service'
+import { Group } from 'src/groups/entities/group.entity'
+import { Teacher } from 'src/teachers/entities/teacher.entity'
+import { Subject } from 'src/subjects/entities/subject.entity'
+import { Timetable } from 'src/timetable/entities/timetable.entity'
 import { TeacherToSubject } from 'src/teachers/entities/teacher-to-subject.entity'
 import { CreateTimetableDto } from 'src/timetable/dto/create-timetable.dto'
-import { SubjectsService } from './subjects.service'
+import { ITeacher, subgroupNumber } from './types'
 
 @Injectable()
 export class ExcelRepositoryService {
@@ -28,15 +27,13 @@ export class ExcelRepositoryService {
   ) {}
 
   async saveToDB(teachers: ITeacher[]) {
-    for (let teacherIndex = 0; teacherIndex < teachers.length; teacherIndex++) {
-      const { course, ...createTeacherDto } = teachers[teacherIndex]
+    for (const { course, ...createTeacherDto } of teachers) {
       const teacherDB = await this.teacherRepository.save(createTeacherDto)
       const courses = Object.entries(course)
       for (let courseIndex = 0; courseIndex < courses.length; courseIndex++) {
         const [courseNum, subjects] = courses[courseIndex]
 
-        for (let subjectIndex = 0; subjectIndex < subjects.length; subjectIndex++) {
-          const subject = subjects[subjectIndex]
+        for (const subject of subjects) {
           const subjectDB =
             (await this.subjectRepository.findOne({
               name: subject.name,
@@ -52,8 +49,7 @@ export class ExcelRepositoryService {
 
           const groups = Object.entries(subject.groups)
 
-          for (let groupIndex = 0; groupIndex < groups.length; groupIndex++) {
-            const [groupName, { subGroups, hoursPerWeek }] = groups[groupIndex]
+          for (const [groupName, { subGroups, hoursPerWeek }] of groups) {
             const groupDB =
               (await this.groupsRepository.findOne({
                 name: groupName,
@@ -64,8 +60,7 @@ export class ExcelRepositoryService {
 
             for (let subGroupIndex = 0; subGroupIndex < subGroups.length; subGroupIndex++) {
               const subGroup = subGroups[subGroupIndex]
-              for (let lessonIndex = 0; lessonIndex < subGroup.length; lessonIndex++) {
-                const { lessonName, lessonNumber, type, weekDay } = subGroup[lessonIndex]
+              for (const { lessonName, lessonNumber, type, weekDay } of subGroup) {
                 const subjectType = this.excelSubjectService.getTypeOfSubject(lessonName)
                 const { auditorium, campus } =
                   this.excelSubjectService.getAuditoriumAndCampus(lessonName)
@@ -77,7 +72,7 @@ export class ExcelRepositoryService {
                   course: courseNum,
                   type: subjectType,
                   semester: subject.semester,
-                  subGroupNum: (subGroupIndex + 1) as 1 | 2,
+                  subGroupNum: (subGroupIndex + 1) as subgroupNumber,
                   hoursPerSemester: subject.hoursPerSemester?.[subjectType],
                   hoursPerWeek: hoursPerWeek[subjectType][subGroupIndex] || 0,
                   campus,
@@ -85,7 +80,7 @@ export class ExcelRepositoryService {
                   auditorium,
                   lessonNumber,
                 }
-                
+
                 await this.timetableRepository.save(timetableDto)
               }
             }

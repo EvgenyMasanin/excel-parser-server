@@ -1,4 +1,4 @@
-export class CreateTeacherDto {
+export interface CreateTeacherDto {
     name: string
     fullName?: string
     position: string

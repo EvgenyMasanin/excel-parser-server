@@ -1,3 +1,3 @@
-export class CreateSubjectDto {
+export interface CreateSubjectDto {
   name: string
 }

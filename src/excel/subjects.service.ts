@@ -1,6 +1,5 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
-import { ExcelHelperService } from './excel-helper.service'
 import { Injectable } from '@nestjs/common'
+import { ExcelHelperService } from './excel-helper.service'
 import {
   CourseNum,
   courses,
@@ -10,8 +9,8 @@ import {
   ITeacher,
   Semester,
   SubjectTypes,
+  ITeacherPayload,
 } from './types'
-import { ITeacherPayload } from './types'
 
 @Injectable()
 export class SubjectsService {
@@ -46,9 +45,7 @@ export class SubjectsService {
 
     if (realColumns.B!) {
       lecture =
-        realColumns.F! === teacherName
-          ? this.excelHelperService.toNumber(realColumns.D ?? 0)
-          : 0
+        realColumns.F! === teacherName ? this.excelHelperService.toNumber(realColumns.D ?? 0) : 0
     } else {
       lecture = table[realRow - 2].F === teacherName ? table[realRow - 2].D : 0
     }
@@ -126,10 +123,7 @@ export class SubjectsService {
     return teacher.course
   }
 
-  setHoursPerSemester(
-    teachers: ITeacher[],
-    teachersPayload: ITeacherPayload[]
-  ) {
+  setHoursPerSemester(teachers: ITeacher[], teachersPayload: ITeacherPayload[]) {
     teachers.forEach((teacher) => {
       const teacherPayload = teachersPayload.find((teacherPayload) => {
         return teacherPayload.fullName === teacher.name
@@ -156,8 +150,7 @@ export class SubjectsService {
 
   private setHours(subject: ISubject, teacherPayload: ITeacherPayload) {
     const sub = teacherPayload.subjects.find(
-      (sub) =>
-        sub.subjectName === subject.name && sub.semester === subject.semester
+      (sub) => sub.subjectName === subject.name && sub.semester === subject.semester
     )
 
     if (sub) {
@@ -181,19 +174,13 @@ export class SubjectsService {
     return (
       firstSubjectName === secondSubjectName ||
       isSameFullName(firstSubjectName, secondSubjectName) ||
-      firstSubjectAbbreviation.some((ab) =>
-        secondSubjectAbbreviation.includes(ab)
-      ) ||
+      firstSubjectAbbreviation.some((ab) => secondSubjectAbbreviation.includes(ab)) ||
       firstSubjectAbbreviation.includes(secondSubjectName)
     )
   }
 
-  getSubjectNameAndAbbreviation(
-    str: string
-  ): [name: string, abbreviations: string[]] {
-    const name = str
-      ?.slice(0, str.includes('(') ? str.indexOf('(') : str.length)
-      .trim()
+  getSubjectNameAndAbbreviation(str: string): [name: string, abbreviations: string[]] {
+    const name = str?.slice(0, str.includes('(') ? str.indexOf('(') : str.length).trim()
     const abbreviations: string[] = []
     const words = name?.split(/\s|-/)
 
@@ -205,9 +192,7 @@ export class SubjectsService {
     )
     abbreviations.push(
       words
-        ?.map((word) =>
-          word === 'и' ? '' : this.isAbbreviation(word) ? word : word[0]
-        )
+        ?.map((word) => (word === 'и' ? '' : this.isAbbreviation(word) ? word : word[0]))
         .join('')
         .toLocaleLowerCase()
     )
@@ -240,18 +225,17 @@ export class SubjectsService {
   }
 
   getTypeOfSubject(subjectName: string): SubjectTypes {
-    if (subjectName?.match(/\(лек\.\)/)) return SubjectTypes.Lecture
-    if (subjectName?.match(/\(пр\.\)/)) return SubjectTypes.Practice
-    else return SubjectTypes.Laboratory
+    if (subjectName?.match(/\(лек\.\)/)) return 'lecture'
+    if (subjectName?.match(/\(пр\.\)/)) return 'practice'
+    else return 'laboratory'
   }
 
   getAuditoriumAndCampus(subjectName: string): {
     auditorium: number | null
     campus: number | null
   } {
-    const auditorium =
-      +subjectName.match(/а\.?\s*\d+/)?.[0].split(/а\.?\s*/)[1] || null
-    const campus = +subjectName.match(/\/\d+/)?.[0].slice(1) || null
+    const auditorium = +subjectName.match(/а\.?\s*\d+/)?.[0].split(/а\.?\s*/)[1] || null
+    const campus = auditorium ? +subjectName.match(/\/\d+/)?.[0].slice(1) || 1 : null
     return { auditorium, campus }
   }
 }

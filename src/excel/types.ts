@@ -1,10 +1,12 @@
-export type Semester = 'first' | 'second'
-export enum SemestersTranslations {
+import { Range } from 'xlsx'
+
+export const semester = ['first', 'second'] as const
+export type Semester = typeof semester[number]
+
+export enum SemestersMap {
   'осенний' = 'first',
   'весенний' = 'second',
 }
-
-export type obj = { [key: string]: any }
 
 export interface ISubjectHours {
   lecture: number[]
@@ -17,7 +19,7 @@ export interface GroupData {
   subGroups: Array<
     Array<{
       type: WeekType
-      weekDay: DayOfWeek
+      weekDay: WeekDaysEN
       lessonName: string
       lessonNumber: number
     }>
@@ -27,9 +29,7 @@ export interface GroupData {
 export interface ISubject {
   name: string
   semester: Semester
-  groups: {
-    [groupName: string]: GroupData
-  }
+  groups: Record<string, GroupData>
   hoursPerSemester: {
     lecture: number
     laboratory: number
@@ -56,27 +56,18 @@ export interface SubGroupData {
   course: CourseNum
 }
 
-export type Timetable = {
-  [key in WeekDays]: Array<{
-    [key: string]: Array<SubGroupData>
-  }>
-}
+export const SubgroupNumber = [1, 2] as const
+export type subgroupNumber = typeof SubgroupNumber[number]
 
-interface ICourses {
-  1: 'first'
-  2: 'second'
-  3: 'thead'
-  4: 'fourth'
-  5: 'fifth'
-}
+export type Timetable = Record<WeekDaysMap, Array<Record<string, Array<SubGroupData>>>>
 
-export const courses: ICourses = {
+export const courses = {
   1: 'first',
   2: 'second',
   3: 'thead',
   4: 'fourth',
   5: 'fifth',
-}
+} as const
 
 export interface ITableRow {
   A?: number
@@ -94,9 +85,7 @@ export interface ITableRow {
   M?: string
 }
 
-export interface ITable {
-  [key: string]: ITableRow
-}
+export type ITable = Record<string, ITableRow>
 
 export type CourseNum = 1 | 2 | 3 | 4 | 5
 
@@ -115,18 +104,7 @@ export interface ITeacherPayload {
   subjects: ISubjectPayload[]
 }
 
-export type DayOfWeek = 'Понедельник' | 'Вторник' | 'Среда' | 'Четверг' | 'Пятница' | 'Суббота'
-
-export const weekDays: Array<DayOfWeek> = [
-  'Понедельник',
-  'Вторник',
-  'Среда',
-  'Четверг',
-  'Пятница',
-  'Суббота',
-]
-
-export enum WeekDays {
+export enum WeekDaysMap {
   'Понедельник' = 'monday',
   'Вторник' = 'tuesday',
   'Среда' = 'wednesday',
@@ -135,10 +113,19 @@ export enum WeekDays {
   'Суббота' = 'saturday',
 }
 
-export type Merge = {
-  s: { c: number; r: number }
-  e: { c: number; r: number }
-}
+export const weekDaysRU = [
+  'Понедельник',
+  'Вторник',
+  'Среда',
+  'Четверг',
+  'Пятница',
+  'Суббота',
+] as const
+
+export type WeekDaysRU = keyof typeof WeekDaysMap
+export type WeekDaysEN = `${WeekDaysMap}`
+
+export type Merge = Range
 
 export type Merges = Array<Merge>
 
@@ -149,7 +136,7 @@ export const lessons = {
   '14.20-15.55': 'Четвёртая пара',
   '16.05-17.40': 'Пятая пара',
   '17.50-19.25': 'Шестая пара',
-}
+} as const
 
 export enum Lessons {
   'Первая пара',
@@ -160,10 +147,8 @@ export enum Lessons {
   'Шестая пара',
 }
 
-export type WeekType = 'up' | 'down' | 'up/down'
+export const weekType = ['up', 'down', 'up/down'] as const
+export type WeekType = typeof weekType[number]
 
-export enum SubjectTypes {
-  'Lecture' = 'lecture',
-  'Practice' = 'practice',
-  'Laboratory' = 'laboratory',
-}
+export const subjectTypes = ['lecture', 'practice', 'laboratory'] as const
+export type SubjectTypes = typeof subjectTypes[number]

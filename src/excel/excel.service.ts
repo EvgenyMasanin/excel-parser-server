@@ -1,9 +1,9 @@
-import { TimetableService } from './timetable.service'
 import { Injectable } from '@nestjs/common'
 import xlsx from 'xlsx'
-import { ExcelHelperService } from './excel-helper.service'
 import { TeachersService } from './teachers.service'
 import { SubjectsService } from './subjects.service'
+import { TimetableService } from './timetable.service'
+import { ExcelHelperService } from './excel-helper.service'
 import { TeachersPayloadService } from './teachers-payload.service'
 import { ExcelRepositoryService } from './excel-repository.service'
 
@@ -26,8 +26,8 @@ export class ExcelService {
     teacherInfoFile: Express.Multer.File,
     teacherPayloadFile: Express.Multer.File
   ) {
-    const teacherInfoFilePath = 'src/static/Staff_of_the_department_ASU.xlsm'
-    const teacherPayloadFilePath = 'src/static/staff.xlsm'
+    const teacherInfoFilePath = 'static/Staff_of_the_department_ASU.xlsm'
+    const teacherPayloadFilePath = 'static/staff.xlsm'
 
     const teachersInfoFile = xlsx.readFile(teacherInfoFilePath)
     const teachersPayloadFile = xlsx.readFile(teacherPayloadFilePath)
@@ -39,40 +39,24 @@ export class ExcelService {
 
     const teachersPayloadData = teachersPayloadFile.Sheets['Распределение РБ']
 
-    const firstSemesterTable =
-      this.excelHelperService.toTableFormat(firstSemesterData)
-    const secondSemesterTable =
-      this.excelHelperService.toTableFormat(secondSemesterData)
+    const firstSemesterTable = this.excelHelperService.toTableFormat(firstSemesterData)
+    const secondSemesterTable = this.excelHelperService.toTableFormat(secondSemesterData)
 
-    const teachersPayloadTable =
-      this.excelHelperService.toTableFormat(teachersPayloadData)
+    const teachersPayloadTable = this.excelHelperService.toTableFormat(teachersPayloadData)
 
-    const firstSemesterTeachers = this.teachersService.getTeachers(
-      firstSemesterTable,
-      'first'
-    )
-    const secondSemesterTeachers = this.teachersService.getTeachers(
-      secondSemesterTable,
-      'second'
-    )
+    const firstSemesterTeachers = this.teachersService.getTeachers(firstSemesterTable, 'first')
+    const secondSemesterTeachers = this.teachersService.getTeachers(secondSemesterTable, 'second')
     const teachers = this.teachersService.mergeTeachers(
       firstSemesterTeachers,
       secondSemesterTeachers
     )
 
-    const teachersPayload =
-      this.teachersPayloadService.getTeachersPayload(teachersPayloadTable)
+    const teachersPayload = this.teachersPayloadService.getTeachersPayload(teachersPayloadTable)
 
-    const teachers1 = this.subjectService.setHoursPerSemester(
-      teachers,
-      teachersPayload
-    )
+    const teachers1 = this.subjectService.setHoursPerSemester(teachers, teachersPayload)
     const timeTable = this.getTimeTable()
 
-    const testDataTeachers = this.teachersService.setLessonDataToTeachers(
-      teachers1,
-      timeTable
-    )
+    const testDataTeachers = this.teachersService.setLessonDataToTeachers(teachers1, timeTable)
 
     await this.excelRepositoryService.saveToDB(testDataTeachers)
 
@@ -80,11 +64,11 @@ export class ExcelService {
   }
 
   getTimeTable() {
-    const file1 = 'src/static/ATF_1.xlsx'
-    const file2 = 'src/static/ATF_2.xlsx'
-    const file3 = 'src/static/ATF_3.xlsx'
-    const file4 = 'src/static/ATF_4_new.xlsx'
-    const file5 = 'src/static/ATF_5.xlsx'
+    const file1 = 'static/ATF_1.xlsx'
+    const file2 = 'static/ATF_2.xlsx'
+    const file3 = 'static/ATF_3.xlsx'
+    const file4 = 'static/ATF_4_new.xlsx'
+    const file5 = 'static/ATF_5.xlsx'
     const files = [file1, file2, file3, file4, file5]
 
     return files.map((file) => {

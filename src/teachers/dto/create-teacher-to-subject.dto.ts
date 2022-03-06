@@ -1,4 +1,4 @@
-export class CreateTeacherToSubjectDto {
+export interface CreateTeacherToSubjectDto {
     teacherId: number
     subjectId: number
 }

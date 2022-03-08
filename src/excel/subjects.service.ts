@@ -31,28 +31,27 @@ export class SubjectsService {
 
     const subGroup = row - realRow
 
-    const groupName = this.formatGroupName(realColumns.C!)
+    const groupName = this.formatGroupName(realColumns.C)
 
     const allGroups = []
 
     let i = realRow
     do {
-      allGroups.push(table[i].C!)
+      allGroups.push(table[i].C)
       i += 2
     } while (table[i]?.C && !table[i]?.B && realColumns.F === teacherName)
 
     let lecture = 0
 
-    if (realColumns.B!) {
+    if (realColumns.B) {
       lecture =
-        realColumns.F! === teacherName ? this.excelHelperService.toNumber(realColumns.D ?? 0) : 0
+        realColumns.F === teacherName ? this.excelHelperService.toNumber(realColumns.D ?? 0) : 0
     } else {
       lecture = table[realRow - 2].F === teacherName ? table[realRow - 2].D : 0
     }
 
     const subject: ISubject = {
       name: this.formatSubjectName(realColumns.B || table[realRow - 2].B),
-      // name: realColumns.B || table[realRow - 2].B,
       semester,
       groups: {
         [groupName]: {
@@ -110,8 +109,8 @@ export class SubjectsService {
     const realColumns = table[realRow]
     const columns = table[row]
     const subject = teacher.course[courses[course]].find(
-      (subj) => subj.name === this.formatSubjectName(realColumns.B!)
-    )!
+      (subj) => subj.name === this.formatSubjectName(realColumns.B)
+    )
     if (this.excelHelperService.toNumber(columns.G ?? 0) !== 0)
       subject.groups[groupName].hoursPerWeek.laboratory.push(
         this.excelHelperService.toNumber(columns.G ?? 0)
@@ -225,8 +224,8 @@ export class SubjectsService {
   }
 
   getTypeOfSubject(subjectName: string): SubjectTypes {
-    if (subjectName?.match(/\(лек\.\)/)) return 'lecture'
-    if (subjectName?.match(/\(пр\.\)/)) return 'practice'
+    if (subjectName?.match(/\(лек\.?\)/)) return 'lecture'
+    if (subjectName?.match(/\(пр\.?\)/)) return 'practice'
     else return 'laboratory'
   }
 

@@ -53,9 +53,7 @@ export class TeachersService {
         `${position}, ${name}`
       )
 
-      const currentLector = teachers.find(
-        (teacher) => teacher.name === lectorName
-      )
+      const currentLector = teachers.find((teacher) => teacher.name === lectorName)
 
       if (lectorName) {
         if (!currentLector) {
@@ -93,32 +91,19 @@ export class TeachersService {
       } else if (!this.hasSubject(currentTeacher, subject, course)) {
         currentTeacher.course[courses[course]].push(subject)
       } else if (
-        !currentTeacher.course[courses[course]].find(
-          ({ groups }) => groupName in groups
-        )
+        !currentTeacher.course[courses[course]].find(({ groups }) => groupName in groups)
       ) {
-        currentTeacher.course[courses[course]].find(
-          ({ name }) => name === subject.name
-        ).groups[groupName] = subject.groups[groupName]
-      } else {
-        this.subjectService.mergeSubjectData(
-          table,
-          row,
-          currentTeacher,
-          course,
+        currentTeacher.course[courses[course]].find(({ name }) => name === subject.name).groups[
           groupName
-        )
+        ] = subject.groups[groupName]
+      } else {
+        this.subjectService.mergeSubjectData(table, row, currentTeacher, course, groupName)
       }
     })
     return teachers
   }
 
-  private getLector(
-    columns: ITableRow,
-    row: number,
-    table: ITable,
-    semester: Semester
-  ) {
+  private getLector(columns: ITableRow, row: number, table: ITable, semester: Semester) {
     const { name, position } = this.getTeacherInfo(columns.F)
     let subject: ISubject
     if (name) {
@@ -208,15 +193,14 @@ export class TeachersService {
     lessonNumber: number
   ) {
     const typeOfSubject1 = this.subjectService.getTypeOfSubject(subGroupData.up)
-    const typeOfSubject2 = this.subjectService.getTypeOfSubject(
-      subGroupData.down
-    )
+    const typeOfSubject2 = this.subjectService.getTypeOfSubject(subGroupData.down)
 
     const subjectHours1 = [...groupData.hoursPerWeek[typeOfSubject1]]
     const subjectHours2 = [...groupData.hoursPerWeek[typeOfSubject2]]
 
     let type: WeekType
     let lessonName: string
+
     if (
       this.subjectService.isSameSubject(subject.name, subGroupData.up) &&
       this.subjectService.isSameSubject(subject.name, subGroupData.down)
@@ -234,8 +218,8 @@ export class TeachersService {
       }
     }
     let shouldPush = true
-    if (!subjectHours1[0]) shouldPush = false
-    if (!subjectHours2[0]) shouldPush = false
+    if (!subjectHours1[0] && (type === 'up' || type === 'up/down')) shouldPush = false
+    if (!subjectHours2[0] && (type === 'down' || type === 'up/down')) shouldPush = false
 
     if (shouldPush && type && lessonName) {
       groupData.subGroups[subGroupNumber].push({
@@ -259,9 +243,7 @@ export class TeachersService {
       )
 
       if (firstTeacher) {
-        teachers.push(
-          this.subjectService.mergeSubjects(firstTeacher, secondTeacher)
-        )
+        teachers.push(this.subjectService.mergeSubjects(firstTeacher, secondTeacher))
       } else {
         teachers.push(secondTeacher)
       }
@@ -278,9 +260,7 @@ export class TeachersService {
   }
 
   private hasSubject(teacher: ITeacher, subject: ISubject, course: CourseNum) {
-    return teacher.course[courses[course]].some(
-      (subj) => subj.name === subject.name
-    )
+    return teacher.course[courses[course]].some((subj) => subj.name === subject.name)
   }
 
   private getCourseNumCounter() {

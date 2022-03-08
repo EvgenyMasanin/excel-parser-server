@@ -1,60 +1,56 @@
 import { Injectable } from '@nestjs/common'
-import { InjectRepository } from '@nestjs/typeorm'
-import { Repository } from 'typeorm'
-import { SubjectsService } from './subjects.service'
-import { Group } from 'src/groups/entities/group.entity'
-import { Teacher } from 'src/teachers/entities/teacher.entity'
-import { Subject } from 'src/subjects/entities/subject.entity'
-import { Timetable } from 'src/timetable/entities/timetable.entity'
-import { TeacherToSubject } from 'src/teachers/entities/teacher-to-subject.entity'
+import { SubjectsService as ExcelSubjectsService } from './subjects.service'
+import { GroupsService } from 'src/groups/groups.service'
+import { TeachersService } from 'src/teachers/teachers.service'
+import { SubjectsService } from 'src/subjects/subjects.service'
+import { TimetableService } from 'src/timetable/timetable.service'
 import { CreateTimetableDto } from 'src/timetable/dto/create-timetable.dto'
 import { ITeacher, subgroupNumber } from './types'
 
 @Injectable()
 export class ExcelRepositoryService {
   constructor(
-    @InjectRepository(Teacher)
-    private readonly teacherRepository: Repository<Teacher>,
-    @InjectRepository(Subject)
-    private readonly subjectRepository: Repository<Subject>,
-    @InjectRepository(TeacherToSubject)
-    private readonly teacherToSubjectRepository: Repository<TeacherToSubject>,
-    @InjectRepository(Group)
-    private readonly groupsRepository: Repository<Group>,
-    @InjectRepository(Timetable)
-    private readonly timetableRepository: Repository<Timetable>,
-    private readonly excelSubjectService: SubjectsService
+    private readonly teacherService: TeachersService,
+    private readonly subjectService: SubjectsService,
+    private readonly groupService: GroupsService,
+    private readonly timetableService: TimetableService,
+    private readonly excelSubjectService: ExcelSubjectsService
   ) {}
 
   async saveToDB(teachers: ITeacher[]) {
     for (const { course, ...createTeacherDto } of teachers) {
-      const teacherDB = await this.teacherRepository.save(createTeacherDto)
+      const teacherDB = await this.teacherService.create(createTeacherDto)
       const courses = Object.entries(course)
       for (let courseIndex = 0; courseIndex < courses.length; courseIndex++) {
         const [courseNum, subjects] = courses[courseIndex]
 
         for (const subject of subjects) {
           const subjectDB =
-            (await this.subjectRepository.findOne({
+            (await this.subjectService.findOne({
               name: subject.name,
             })) ||
-            (await this.subjectRepository.save({
+            (await this.subjectService.create({
               name: subject.name,
             }))
 
-          const teacherToSubjectDB = await this.teacherToSubjectRepository.save({
-            teacherId: teacherDB.id,
-            subjectId: subjectDB.id,
-          })
+          const teacherToSubjectDB =
+            (await this.teacherService.findOneTeacherToSubject({
+              teacherId: teacherDB.id,
+              subjectId: subjectDB.id,
+            })) ||
+            (await this.teacherService.createTeacherToSubject({
+              teacherId: teacherDB.id,
+              subjectId: subjectDB.id,
+            }))
 
           const groups = Object.entries(subject.groups)
 
           for (const [groupName, { subGroups, hoursPerWeek }] of groups) {
             const groupDB =
-              (await this.groupsRepository.findOne({
+              (await this.groupService.findOne({
                 name: groupName,
               })) ||
-              (await this.groupsRepository.save({
+              (await this.groupService.create({
                 name: groupName,
               }))
 
@@ -74,14 +70,17 @@ export class ExcelRepositoryService {
                   semester: subject.semester,
                   subGroupNum: (subGroupIndex + 1) as subgroupNumber,
                   hoursPerSemester: subject.hoursPerSemester?.[subjectType],
-                  hoursPerWeek: hoursPerWeek[subjectType][subGroupIndex] || 0,
+                  hoursPerWeek:
+                    subjectType === 'lecture'
+                      ? hoursPerWeek[subjectType][0]
+                      : hoursPerWeek[subjectType][subGroupIndex] || 0,
                   campus,
                   weekDay,
                   auditorium,
                   lessonNumber,
                 }
 
-                await this.timetableRepository.save(timetableDto)
+                await this.timetableService.create(timetableDto)
               }
             }
           }

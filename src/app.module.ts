@@ -11,6 +11,7 @@ import { TimetableModule } from './timetable/timetable.module'
 import { Group } from './groups/entities/group.entity'
 import { TeacherToSubject } from './teachers/entities/teacher-to-subject.entity'
 import { Timetable } from './timetable/entities/timetable.entity'
+import { MistakeFinderModule } from './mistake-finder/mistake-finder.module';
 
 @Module({
   controllers: [],
@@ -34,6 +35,7 @@ import { Timetable } from './timetable/entities/timetable.entity'
     SubjectsModule,
     GroupsModule,
     TimetableModule,
+    MistakeFinderModule,
   ],
 })
 export class AppModule {}

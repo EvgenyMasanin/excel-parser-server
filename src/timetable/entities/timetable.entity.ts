@@ -2,12 +2,10 @@ import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 't
 import { Group } from 'src/groups/entities/group.entity'
 import { TeacherToSubject } from 'src/teachers/entities/teacher-to-subject.entity'
 import {
-  WeekDaysRU,
   SubjectTypes,
   Semester,
   WeekDaysMap,
   WeekType,
-  weekDaysRU,
   WeekDaysEN,
   subjectTypes,
   SubgroupNumber,

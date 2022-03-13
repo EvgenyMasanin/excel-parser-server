@@ -8,14 +8,14 @@ export enum SemestersMap {
   'весенний' = 'second',
 }
 
-export interface ISubjectHours {
+export interface SubjectHours {
   lecture: number[]
   laboratory: number[]
   practice: number[]
 }
 
 export interface GroupData {
-  hoursPerWeek: ISubjectHours
+  hoursPerWeek: SubjectHours
   subGroups: Array<
     Array<{
       type: WeekType
@@ -26,7 +26,7 @@ export interface GroupData {
   >
 }
 
-export interface ISubject {
+export interface ExcelSubject {
   name: string
   semester: Semester
   groups: Record<string, GroupData>
@@ -37,16 +37,21 @@ export interface ISubject {
   } | null
 }
 
-export interface ITeacher {
+export interface ExcelTeacher {
   name: string
   position: string
   course: {
-    first: ISubject[]
-    second: ISubject[]
-    thead: ISubject[]
-    fourth: ISubject[]
-    fifth: ISubject[]
+    first: ExcelSubject[]
+    second: ExcelSubject[]
+    thead: ExcelSubject[]
+    fourth: ExcelSubject[]
+    fifth: ExcelSubject[]
   }
+}
+
+export interface TeacherInfo {
+  name: string
+  position: string
 }
 
 export interface SubGroupData {
@@ -56,8 +61,8 @@ export interface SubGroupData {
   course: CourseNum
 }
 
-export const SubgroupNumber = [1, 2] as const
-export type subgroupNumber = typeof SubgroupNumber[number]
+export const subgroupNumber = [1, 2] as const
+export type SubgroupNumber = typeof subgroupNumber[number]
 
 export type Timetable = Record<WeekDaysMap, Array<Record<string, Array<SubGroupData>>>>
 
@@ -69,7 +74,7 @@ export const courses = {
   5: 'fifth',
 } as const
 
-export interface ITableRow {
+export interface TableRow {
   A?: number
   B?: string
   C?: string
@@ -85,11 +90,11 @@ export interface ITableRow {
   M?: string
 }
 
-export type ITable = Record<string, ITableRow>
+export type Table = Record<string, TableRow>
 
 export type CourseNum = 1 | 2 | 3 | 4 | 5
 
-export interface ISubjectPayload {
+export interface ExcelSubjectPayload {
   subjectName: string
   semester: Semester
   countOfHours: {
@@ -99,9 +104,9 @@ export interface ISubjectPayload {
   }
 }
 
-export interface ITeacherPayload {
+export interface ExcelTeacherPayload {
   fullName: string
-  subjects: ISubjectPayload[]
+  subjects: ExcelSubjectPayload[]
 }
 
 export enum WeekDaysMap {

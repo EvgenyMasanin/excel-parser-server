@@ -17,6 +17,7 @@ import { TeachersService } from 'src/teachers/teachers.service'
 import { GroupsService } from 'src/groups/groups.service'
 import { TimetableService } from 'src/timetable/timetable.service'
 import { SubjectsService } from 'src/subjects/subjects.service'
+import { SubjectHours } from 'src/subjects/entities/subject-hours.entity'
 
 @Module({
   providers: [
@@ -33,7 +34,9 @@ import { SubjectsService } from 'src/subjects/subjects.service'
     TimetableService,
   ],
   controllers: [ExcelController],
-  imports: [TypeOrmModule.forFeature([Teacher, Subject, TeacherToSubject, Group, Timetable])],
+  imports: [
+    TypeOrmModule.forFeature([Teacher, Subject, TeacherToSubject, Group, Timetable, SubjectHours]),
+  ],
   exports: [ExcelService],
 })
 export class ExcelModule {}

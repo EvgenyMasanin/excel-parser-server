@@ -2,6 +2,7 @@ import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColum
 import { Teacher } from './teacher.entity'
 import { Subject } from 'src/subjects/entities/subject.entity'
 import { Timetable } from 'src/timetable/entities/timetable.entity'
+import { SubjectHours } from 'src/subjects/entities/subject-hours.entity'
 
 @Entity()
 export class TeacherToSubject {
@@ -24,4 +25,7 @@ export class TeacherToSubject {
 
   @OneToMany(() => Timetable, (timetable) => timetable.teacherToSubject)
   timetables: Timetable[]
+
+  @OneToMany(() => SubjectHours, (subjectHours) => subjectHours.group)
+  subjectHours: SubjectHours[]
 }

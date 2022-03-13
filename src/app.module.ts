@@ -11,7 +11,8 @@ import { TimetableModule } from './timetable/timetable.module'
 import { Group } from './groups/entities/group.entity'
 import { TeacherToSubject } from './teachers/entities/teacher-to-subject.entity'
 import { Timetable } from './timetable/entities/timetable.entity'
-import { MistakeFinderModule } from './mistake-finder/mistake-finder.module';
+import { MistakeFinderModule } from './mistake-finder/mistake-finder.module'
+import { SubjectHours } from './subjects/entities/subject-hours.entity'
 
 @Module({
   controllers: [],
@@ -27,7 +28,7 @@ import { MistakeFinderModule } from './mistake-finder/mistake-finder.module';
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
-      entities: [Teacher, Subject, TeacherToSubject, Group, Timetable],
+      entities: [Teacher, Subject, TeacherToSubject, Group, Timetable, SubjectHours],
       synchronize: true,
     }),
     ExcelModule,

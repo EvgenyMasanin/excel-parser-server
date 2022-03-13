@@ -3,8 +3,8 @@ import { ExcelHelperService } from './excel-helper.service'
 import {
   CourseNum,
   WeekDaysRU,
-  ITable,
-  ITableRow,
+  Table,
+  TableRow,
   Lessons,
   lessons,
   Merge,
@@ -22,7 +22,7 @@ export class TimetableService {
   constructor(private readonly exlHlpSrv: ExcelHelperService) {}
 
   private merges: Merges
-  private table: ITable
+  private table: Table
 
   private isTableEnd = false
 
@@ -69,7 +69,7 @@ export class TimetableService {
     }
   }
 
-  getTimetable(table: ITable, merges: Merges) {
+  getTimetable(table: Table, merges: Merges) {
     this.merges = merges
     this.table = table
 
@@ -208,7 +208,7 @@ export class TimetableService {
 
   private setLessonName(
     rowNumber: string,
-    rowContent: ITableRow,
+    rowContent: TableRow,
     columnName: string
   ): { lessonName: string | null; isLessonPerWeek: boolean } {
     const ceilData = rowContent[columnName]
@@ -233,7 +233,7 @@ export class TimetableService {
     return { lessonName: null, isLessonPerWeek: false }
   }
 
-  private setDayOfWeek(rowNumber: string, rowContent: ITableRow) {
+  private setDayOfWeek(rowNumber: string, rowContent: TableRow) {
     if (this.dayOfWeekMerge?.e.r > +rowNumber - 1) return
 
     if (weekDaysRU.includes(rowContent.A?.toString() as WeekDaysRU)) {
@@ -275,7 +275,7 @@ export class TimetableService {
 
   private setCurrentJointLesson(
     rowNumber: string,
-    rowContent: ITableRow,
+    rowContent: TableRow,
     columnName: string,
     groupNumber: number
   ) {

@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { SubjectsService } from './subjects.service'
 import { ExcelHelperService } from './excel-helper.service'
-import { ITable, Semester, ITeacherPayload, ISubjectPayload } from './types'
+import { Table, Semester, ExcelTeacherPayload, ExcelSubjectPayload } from './types'
 
 @Injectable()
 export class TeachersPayloadService {
@@ -10,14 +10,14 @@ export class TeachersPayloadService {
     private readonly subjectsService: SubjectsService
   ) {}
 
-  getTeachersPayload(tableData: ITable) {
+  getTeachersPayload(tableData: Table) {
     return this.createData(tableData)
   }
 
-  private createData(table: ITable) {
-    const subjects: ISubjectPayload[] = []
-    const teachers: ITeacherPayload[] = []
-    let currentTeacher: ITeacherPayload | null = null
+  private createData(table: Table) {
+    const subjects: ExcelSubjectPayload[] = []
+    const teachers: ExcelTeacherPayload[] = []
+    let currentTeacher: ExcelTeacherPayload | null = null
     let semester: Semester = 'first'
 
     try {
@@ -36,7 +36,7 @@ export class TeachersPayloadService {
           throw new Error('End of data.')
         }
         if (columns.B && currentTeacher) {
-          const subjectPayload: ISubjectPayload = {
+          const subjectPayload: ExcelSubjectPayload = {
             subjectName: this.subjectsService.formatSubjectName(columns.B),
             semester,
             countOfHours: {

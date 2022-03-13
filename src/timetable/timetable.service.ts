@@ -4,7 +4,7 @@ import { TimetableWithAdditionalData } from 'src/mistake-finder/entities/timetab
 import { Subject } from 'src/subjects/entities/subject.entity'
 import { Teacher } from 'src/teachers/entities/teacher.entity'
 import objectEquals from 'src/utils/objectEquals'
-import { Repository } from 'typeorm'
+import { FindManyOptions, Repository } from 'typeorm'
 import { CreateTimetableDto } from './dto/create-timetable.dto'
 import { UpdateTimetableDto } from './dto/update-timetable.dto'
 import { Timetable } from './entities/timetable.entity'
@@ -17,6 +17,10 @@ export class TimetableService {
   ) {}
   async create(createTimetableDto: CreateTimetableDto) {
     return await this.timetableRepository.save(createTimetableDto)
+  }
+
+  async findTimetables(options?: FindManyOptions<Timetable>) {
+    return await this.timetableRepository.find(options)
   }
 
   async findTimetablesByTeacherAndSubject(

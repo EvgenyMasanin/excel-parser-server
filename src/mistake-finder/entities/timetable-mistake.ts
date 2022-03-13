@@ -1,5 +1,5 @@
 import { Semester, SubjectTypes } from 'src/excel/types'
-import { subgroupNumber, WeekDaysEN } from 'src/excel/types'
+import { SubgroupNumber, WeekDaysEN } from 'src/excel/types'
 import { Group } from 'src/groups/entities/group.entity'
 import { Subject } from 'src/subjects/entities/subject.entity'
 import { Teacher } from 'src/teachers/entities/teacher.entity'
@@ -19,7 +19,7 @@ export class TimetableMistake {
   readonly subjectName: string
   readonly groupId: number
   readonly groupName: string
-  readonly subGroupNum: subgroupNumber
+  readonly subGroupNum: SubgroupNumber
   readonly semester: Semester
   readonly course: string
   readonly lessonNumber: number

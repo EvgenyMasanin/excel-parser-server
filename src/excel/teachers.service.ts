@@ -1,28 +1,33 @@
 import { Injectable } from '@nestjs/common'
+import { ExcelHelperService } from './excel-helper.service'
 import { SubjectsService } from './subjects.service'
 import {
   GroupData,
-  ITableRow,
+  TableRow,
   SubGroupData,
   WeekType,
   CourseNum,
   courses,
-  ISubject,
-  ITable,
-  ITeacher,
+  ExcelSubject,
+  Table,
+  ExcelTeacher,
   Semester,
   Timetable,
   WeekDaysEN,
+  TeacherInfo,
 } from './types'
 
 @Injectable()
 export class TeachersService {
-  constructor(private readonly subjectService: SubjectsService) {}
+  constructor(
+    private readonly subjectService: SubjectsService,
+    private readonly excelHelperService: ExcelHelperService
+  ) {}
 
-  getTeachers(table: ITable, semester: Semester) {
+  getTeachers(table: Table, semester: Semester) {
     const courseNumCounter = this.getCourseNumCounter()
 
-    const teachers: ITeacher[] = []
+    const teachers: ExcelTeacher[] = []
 
     Object.keys(table).forEach((key) => {
       const row = +key
@@ -38,14 +43,15 @@ export class TeachersService {
         columns.I ? columns.I : columns.L ? columns.L : columns.F
       )
 
-      const { lectorName, lectorPosition, lectorSubject } = this.getLector(
-        columns,
-        row,
+      const lectorInfo = this.getTeacherInfo(columns.F)
+      const { subjects: lectorsSubjects, groupName } = this.subjectService.getSubjectData(
         table,
-        semester
+        row,
+        columns,
+        semester,
+        `${lectorInfo.position}, ${lectorInfo.name}`
       )
-
-      const { subject, groupName } = this.subjectService.getSubjectData(
+      const { subjects } = this.subjectService.getSubjectData(
         table,
         row,
         columns,
@@ -53,59 +59,77 @@ export class TeachersService {
         `${position}, ${name}`
       )
 
-      const currentLector = teachers.find((teacher) => teacher.name === lectorName)
+      lectorsSubjects.forEach((subject) => {
+        const { lectorName, lectorPosition, lectorSubject } = this.getLector(
+          lectorInfo,
+          subject,
+          columns,
+          row,
+          table
+        )
 
-      if (lectorName) {
-        if (!currentLector) {
-          const teacher: ITeacher = {
-            name: lectorName,
-            position: lectorPosition,
-            course: {
-              first: [],
-              second: [],
-              thead: [],
-              fourth: [],
-              fifth: [],
-            },
+        const currentLector = teachers.find((teacher) => teacher.name === lectorName)
+        if (lectorName) {
+          if (!currentLector) {
+            const teacher: ExcelTeacher = {
+              name: lectorName,
+              position: lectorPosition,
+              course: {
+                first: [],
+                second: [],
+                thead: [],
+                fourth: [],
+                fifth: [],
+              },
+            }
+
+            teacher.course[courses[course]].push(lectorSubject)
+
+            teachers.push(teacher)
+          } else if (!this.hasSubject(currentLector, lectorSubject, course)) {
+            currentLector.course[courses[course]].push(lectorSubject)
+          }
+        }
+      })
+      subjects.forEach((subject) => {
+        const currentTeacher = teachers.find((teacher) => teacher.name === name)
+
+        if (!currentTeacher) {
+          const teacher: ExcelTeacher = {
+            name,
+            position,
+            course: { first: [], second: [], thead: [], fourth: [], fifth: [] },
           }
 
-          teacher.course[courses[course]].push(lectorSubject)
+          teacher.course[courses[course]].push(subject)
 
           teachers.push(teacher)
-        } else if (!this.hasSubject(currentLector, lectorSubject, course)) {
-          currentLector.course[courses[course]].push(lectorSubject)
+        } else if (!this.hasSubject(currentTeacher, subject, course)) {
+          currentTeacher.course[courses[course]].push(subject)
+        } else if (
+          !currentTeacher.course[courses[course]].find(({ groups }) => groupName in groups)
+        ) {
+          currentTeacher.course[courses[course]].find(({ name }) => name === subject.name).groups[
+            groupName
+          ] = subject.groups[groupName]
+        } else {
+          this.subjectService.mergeSubjectData(table, row, currentTeacher, course, groupName)
         }
-      }
-      const currentTeacher = teachers.find((teacher) => teacher.name === name)
-
-      if (!currentTeacher) {
-        const teacher: ITeacher = {
-          name,
-          position,
-          course: { first: [], second: [], thead: [], fourth: [], fifth: [] },
-        }
-
-        teacher.course[courses[course]].push(subject)
-
-        teachers.push(teacher)
-      } else if (!this.hasSubject(currentTeacher, subject, course)) {
-        currentTeacher.course[courses[course]].push(subject)
-      } else if (
-        !currentTeacher.course[courses[course]].find(({ groups }) => groupName in groups)
-      ) {
-        currentTeacher.course[courses[course]].find(({ name }) => name === subject.name).groups[
-          groupName
-        ] = subject.groups[groupName]
-      } else {
-        this.subjectService.mergeSubjectData(table, row, currentTeacher, course, groupName)
-      }
+      })
     })
+
     return teachers
   }
 
-  private getLector(columns: ITableRow, row: number, table: ITable, semester: Semester) {
-    const { name, position } = this.getTeacherInfo(columns.F)
-    let subject: ISubject
+  private getLector(
+    lectorInfo: TeacherInfo,
+    lectorSubject: ExcelSubject,
+    columns: TableRow,
+    row: number,
+    table: Table
+  ) {
+    const { name, position } = lectorInfo
+    let subject: ExcelSubject
     if (name) {
       const groups: string[] = []
       let i = row
@@ -114,19 +138,14 @@ export class TeachersService {
         i += 2
       } while (table[i]?.C && !table[i]?.B)
 
-      const subjectData = this.subjectService.getSubjectData(
-        table,
-        row,
-        columns,
-        semester,
-        `${position}, ${name}`
-      )
-      subject = subjectData.subject
+      subject = lectorSubject
+
       subject.groups = {}
       groups.forEach((group) => {
         subject.groups[group] = {
           hoursPerWeek: {
-            lecture: [columns.D],
+            lecture: [this.excelHelperService.toNumber(columns.D)],
+            // lecture: [columns.D],
             laboratory: [],
             practice: [],
           },
@@ -142,7 +161,7 @@ export class TeachersService {
     }
   }
 
-  setLessonDataToTeachers(teachers: ITeacher[], timeTables: Timetable[]) {
+  setLessonDataToTeachers(teachers: ExcelTeacher[], timeTables: Timetable[]) {
     teachers.forEach((teacher) => {
       Object.entries(teacher.course).forEach(([course, subjects]) => {
         subjects.forEach((subject) => {
@@ -185,7 +204,7 @@ export class TeachersService {
   }
 
   setSubjectData(
-    subject: ISubject,
+    subject: ExcelSubject,
     groupData: GroupData,
     subGroupData: SubGroupData,
     subGroupNumber: number,
@@ -232,10 +251,10 @@ export class TeachersService {
   }
 
   mergeTeachers = (
-    firstSemesterTeachers: ITeacher[],
-    secondSemesterTeachers: ITeacher[]
-  ): ITeacher[] => {
-    const teachers: ITeacher[] = []
+    firstSemesterTeachers: ExcelTeacher[],
+    secondSemesterTeachers: ExcelTeacher[]
+  ): ExcelTeacher[] => {
+    const teachers: ExcelTeacher[] = []
 
     secondSemesterTeachers.forEach((secondTeacher) => {
       const firstTeacher = firstSemesterTeachers.find(
@@ -251,7 +270,7 @@ export class TeachersService {
     return teachers
   }
 
-  getTeacherInfo(str = '') {
+  getTeacherInfo(str = ''): TeacherInfo {
     const strData = str.split(',')
     return {
       name: strData[1]?.trim(),
@@ -259,10 +278,10 @@ export class TeachersService {
     }
   }
 
-  private hasSubject(teacher: ITeacher, subject: ISubject, course: CourseNum) {
+  private hasSubject(teacher: ExcelTeacher, subject: ExcelSubject, course: CourseNum) {
     return teacher.course[courses[course]].some((subj) => subj.name === subject.name)
   }
-
+//FIXME:
   private getCourseNumCounter() {
     enum CoursesEnum {
       first = 'Курс 1',

@@ -58,7 +58,7 @@ export class ExcelService {
 
     const testDataTeachers = this.teachersService.setLessonDataToTeachers(teachers1, timeTable)
 
-    await this.excelRepositoryService.saveToDB(testDataTeachers)
+    // await this.excelRepositoryService.saveToDB(testDataTeachers)
 
     return testDataTeachers
   }

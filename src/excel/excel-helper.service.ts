@@ -1,12 +1,12 @@
 import { Injectable } from '@nestjs/common'
 import { WorkSheet } from 'xlsx'
-import { ITable } from './types'
+import { Table } from './types'
 
 type ColumnName = 'A' | 'B' | 'C' | 'D' | 'E' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M'
 
 @Injectable()
 export class ExcelHelperService {
-  toTableFormat(data: WorkSheet): ITable {
+  toTableFormat(data: WorkSheet): Table {
     const staffData = Object.keys(data).reduce((accum, key) => {
       if (!['!margins', '!merges'].includes(key)) {
         accum[key] = data[key]
@@ -14,7 +14,7 @@ export class ExcelHelperService {
       return accum
     }, {} as Omit<WorkSheet, '!margins' | '!merges'>)
 
-    const table = {} as ITable
+    const table = {} as Table
     Object.keys(staffData).forEach((key) => {
       const row = this.getNumOfRow(key)
       const column = this.getColumnName(key)

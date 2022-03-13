@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Subject } from 'src/subjects/entities/subject.entity'
-import { FindConditions, Repository } from 'typeorm'
+import { FindConditions, FindOneOptions, Repository } from 'typeorm'
 import { CreateTeacherToSubjectDto } from './dto/create-teacher-to-subject.dto'
 import { CreateTeacherDto } from './dto/create-teacher.dto'
 import { UpdateTeacherDto } from './dto/update-teacher.dto'
@@ -25,8 +25,15 @@ export class TeachersService {
   async createTeacherToSubject(createTeacherToSubjectDto: CreateTeacherToSubjectDto) {
     return await this.teacherToSubjectRepository.save(createTeacherToSubjectDto)
   }
-  async findOneTeacherToSubject(conditions: FindConditions<TeacherToSubject>) {
-    return await this.teacherToSubjectRepository.findOne(conditions)
+  async findOneTeacherToSubject(options?: FindOneOptions<TeacherToSubject>) {
+    return await this.teacherToSubjectRepository.findOne(options)
+  }
+
+  async findOneOrCreateTeacherToSubject(createTeacherToSubjectDto: CreateTeacherToSubjectDto) {
+    return (
+      (await this.teacherToSubjectRepository.findOne(createTeacherToSubjectDto)) ||
+      (await this.teacherToSubjectRepository.save(createTeacherToSubjectDto))
+    )
   }
 
   findAllTeachersWithAdditionalData = async () =>

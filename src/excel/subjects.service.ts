@@ -3,13 +3,13 @@ import { ExcelHelperService } from './excel-helper.service'
 import {
   CourseNum,
   courses,
-  ISubject,
-  ITable,
-  ITableRow,
-  ITeacher,
+  ExcelSubject,
+  Table,
+  TableRow,
+  ExcelTeacher,
   Semester,
   SubjectTypes,
-  ITeacherPayload,
+  ExcelTeacherPayload,
 } from './types'
 
 @Injectable()
@@ -17,12 +17,12 @@ export class SubjectsService {
   constructor(private readonly excelHelperService: ExcelHelperService) {}
 
   getSubjectData(
-    table: ITable,
+    table: Table,
     row: number,
-    columns: ITableRow,
+    columns: TableRow,
     semester: Semester,
     teacherName: string
-  ): { subject: ISubject; groupName: string } {
+  ): { subjects: ExcelSubject[]; groupName: string } {
     let realRow = row
 
     while (!table[realRow]?.B && !table[realRow]?.C) realRow--
@@ -44,45 +44,54 @@ export class SubjectsService {
     let lecture = 0
 
     if (realColumns.B) {
-      lecture =
+      lecture = this.excelHelperService.toNumber(
         realColumns.F === teacherName ? this.excelHelperService.toNumber(realColumns.D ?? 0) : 0
+      )
     } else {
-      lecture = table[realRow - 2].F === teacherName ? table[realRow - 2].D : 0
+      lecture = this.excelHelperService.toNumber(
+        table[realRow - 2].F === teacherName ? table[realRow - 2].D : 0
+      )
     }
+    const subjectsNames = this.formatSubjectName(realColumns.B || table[realRow - 2].B)
+      .split('/')
+      .map((name) => name.trim())
 
-    const subject: ISubject = {
-      name: this.formatSubjectName(realColumns.B || table[realRow - 2].B),
-      semester,
-      groups: {
-        [groupName]: {
-          hoursPerWeek: {
-            lecture: [lecture],
-            laboratory: [],
-            practice: [],
+    const subjects = subjectsNames.map((subjectName) => {
+      const subject: ExcelSubject = {
+        name: subjectName,
+        semester,
+        groups: {
+          [groupName]: {
+            hoursPerWeek: {
+              lecture: [lecture],
+              laboratory: [],
+              practice: [],
+            },
+            subGroups: [],
           },
-          subGroups: [],
         },
-      },
-      hoursPerSemester: null,
-    }
+        hoursPerSemester: null,
+      }
 
-    if (this.excelHelperService.toNumber(columns.G ?? 0) !== 0) {
-      subject.groups[groupName].hoursPerWeek.laboratory.push(
-        ...Array(subGroup).fill(0),
-        this.excelHelperService.toNumber(columns.G ?? 0)
-      )
-    }
-    if (this.excelHelperService.toNumber(columns.J ?? 0) !== 0) {
-      subject.groups[groupName].hoursPerWeek.practice.push(
-        ...Array(subGroup).fill(0),
-        this.excelHelperService.toNumber(columns.J ?? 0)
-      )
-    }
+      if (this.excelHelperService.toNumber(columns.G ?? 0) !== 0) {
+        subject.groups[groupName].hoursPerWeek.laboratory.push(
+          ...Array(subGroup).fill(0),
+          this.excelHelperService.toNumber(columns.G ?? 0)
+        )
+      }
+      if (this.excelHelperService.toNumber(columns.J ?? 0) !== 0) {
+        subject.groups[groupName].hoursPerWeek.practice.push(
+          ...Array(subGroup).fill(0),
+          this.excelHelperService.toNumber(columns.J ?? 0)
+        )
+      }
+      return subject
+    })
 
-    return { subject, groupName }
+    return { subjects, groupName }
   }
 
-  mergeSubjects(firstTeacher: ITeacher, secondTeacher: ITeacher): ITeacher {
+  mergeSubjects(firstTeacher: ExcelTeacher, secondTeacher: ExcelTeacher): ExcelTeacher {
     return {
       name: firstTeacher.name,
       position: firstTeacher.position,
@@ -97,9 +106,9 @@ export class SubjectsService {
   }
 
   mergeSubjectData(
-    table: ITable,
+    table: Table,
     row: number,
-    teacher: ITeacher,
+    teacher: ExcelTeacher,
     course: CourseNum,
     groupName: string
   ) {
@@ -108,9 +117,10 @@ export class SubjectsService {
 
     const realColumns = table[realRow]
     const columns = table[row]
-    const subject = teacher.course[courses[course]].find(
-      (subj) => subj.name === this.formatSubjectName(realColumns.B)
+    const subject = teacher.course[courses[course]].find((subj) =>
+      this.formatSubjectName(realColumns.B).includes(subj.name)
     )
+
     if (this.excelHelperService.toNumber(columns.G ?? 0) !== 0)
       subject.groups[groupName].hoursPerWeek.laboratory.push(
         this.excelHelperService.toNumber(columns.G ?? 0)
@@ -122,7 +132,7 @@ export class SubjectsService {
     return teacher.course
   }
 
-  setHoursPerSemester(teachers: ITeacher[], teachersPayload: ITeacherPayload[]) {
+  setHoursPerSemester(teachers: ExcelTeacher[], teachersPayload: ExcelTeacherPayload[]) {
     teachers.forEach((teacher) => {
       const teacherPayload = teachersPayload.find((teacherPayload) => {
         return teacherPayload.fullName === teacher.name
@@ -147,7 +157,7 @@ export class SubjectsService {
     return teachers
   }
 
-  private setHours(subject: ISubject, teacherPayload: ITeacherPayload) {
+  private setHours(subject: ExcelSubject, teacherPayload: ExcelTeacherPayload) {
     const sub = teacherPayload.subjects.find(
       (sub) => sub.subjectName === subject.name && sub.semester === subject.semester
     )

@@ -1,9 +1,9 @@
-import { SubjectTypes, Semester, WeekType, WeekDaysEN, subgroupNumber } from 'src/excel/types'
+import { SubjectTypes, Semester, WeekType, WeekDaysEN, SubgroupNumber } from 'src/excel/types'
 
 export interface CreateTimetableDto {
   teacherToSubjectId: number
   groupId: number
-  subGroupNum: subgroupNumber
+  subGroupNum: SubgroupNumber
   weekDay: WeekDaysEN
   type: SubjectTypes
   hoursPerWeek: number

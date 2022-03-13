@@ -5,7 +5,8 @@ import { TeachersService } from 'src/teachers/teachers.service'
 import { SubjectsService } from 'src/subjects/subjects.service'
 import { TimetableService } from 'src/timetable/timetable.service'
 import { CreateTimetableDto } from 'src/timetable/dto/create-timetable.dto'
-import { ITeacher, subgroupNumber } from './types'
+import { ExcelTeacher, SubgroupNumber } from './types'
+import { SubjectHours } from 'src/subjects/entities/subject-hours.entity'
 
 @Injectable()
 export class ExcelRepositoryService {
@@ -14,10 +15,11 @@ export class ExcelRepositoryService {
     private readonly subjectService: SubjectsService,
     private readonly groupService: GroupsService,
     private readonly timetableService: TimetableService,
-    private readonly excelSubjectService: ExcelSubjectsService
+    private readonly excelSubjectService: ExcelSubjectsService,
+    private readonly subjectHoursService: SubjectsService
   ) {}
 
-  async saveToDB(teachers: ITeacher[]) {
+  async saveToDB(teachers: ExcelTeacher[]) {
     for (const { course, ...createTeacherDto } of teachers) {
       const teacherDB = await this.teacherService.create(createTeacherDto)
       const courses = Object.entries(course)
@@ -25,23 +27,14 @@ export class ExcelRepositoryService {
         const [courseNum, subjects] = courses[courseIndex]
 
         for (const subject of subjects) {
-          const subjectDB =
-            (await this.subjectService.findOne({
-              name: subject.name,
-            })) ||
-            (await this.subjectService.create({
-              name: subject.name,
-            }))
+          const subjectDB = await this.subjectService.findOneOrCreate({
+            name: subject.name,
+          })
 
-          const teacherToSubjectDB =
-            (await this.teacherService.findOneTeacherToSubject({
-              teacherId: teacherDB.id,
-              subjectId: subjectDB.id,
-            })) ||
-            (await this.teacherService.createTeacherToSubject({
-              teacherId: teacherDB.id,
-              subjectId: subjectDB.id,
-            }))
+          const teacherToSubjectDB = await this.teacherService.findOneOrCreateTeacherToSubject({
+            teacherId: teacherDB.id,
+            subjectId: subjectDB.id,
+          })
 
           const groups = Object.entries(subject.groups)
 
@@ -52,7 +45,19 @@ export class ExcelRepositoryService {
               })) ||
               (await this.groupService.create({
                 name: groupName,
+                countOfSubGroups: subGroups.length as SubgroupNumber,
               }))
+            //FIXME:
+            // console.log(hoursPerWeek)
+
+            await this.subjectHoursService.findOneOrCreateSubjectHours({
+              teacherToSubjectId: teacherToSubjectDB.id,
+              groupId: groupDB.id,
+              semester: subject.semester,
+              lectureHoursPerWeek: hoursPerWeek.lecture[0] || 0,
+              practiceHoursPerWeek: hoursPerWeek.practice[0] || 0,
+              laboratoryHoursPerWeek: hoursPerWeek.laboratory[0] || 0,
+            })
 
             for (let subGroupIndex = 0; subGroupIndex < subGroups.length; subGroupIndex++) {
               const subGroup = subGroups[subGroupIndex]
@@ -68,7 +73,7 @@ export class ExcelRepositoryService {
                   course: courseNum,
                   type: subjectType,
                   semester: subject.semester,
-                  subGroupNum: (subGroupIndex + 1) as subgroupNumber,
+                  subGroupNum: (subGroupIndex + 1) as SubgroupNumber,
                   hoursPerSemester: subject.hoursPerSemester?.[subjectType],
                   hoursPerWeek:
                     subjectType === 'lecture'

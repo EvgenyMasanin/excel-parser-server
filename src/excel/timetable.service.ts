@@ -89,7 +89,7 @@ export class TimetableService {
 
       this.toggleWeekType()
 
-      this.groupNames.forEach((group, index) => {
+      this.groupNames.forEach((groupName, index) => {
         const lessonMerges = lessonsMerges.find(
           (merge) => merge.s.r === +rowNumber - 1 || merge.e.r === +rowNumber - 1
         )
@@ -113,29 +113,39 @@ export class TimetableService {
           )
 
           if (!this.hasLessonData(lessonNumber)) {
-            this.timetable[WeekDaysMap[this.dayOfWeek]].push({
-              [group]: [
+            this.timetable[WeekDaysMap[this.dayOfWeek]].push([
+              {
+                name: groupName,
+                course,
+                semester,
+                subgroupsCount: 1,
+                subgroupsTimetable: [
+                  {
+                    up: lessonName,
+                    down: this.isCurrentJointLessonPerWeek || isLessonPerWeek ? lessonName : null,
+                  },
+                ],
+              },
+            ])
+          } else if (!this.hasGroupData(lessonNumber, groupName)) {
+            this.timetable[WeekDaysMap[this.dayOfWeek]][Lessons[lessonNumber]].push({
+              name: groupName,
+              course,
+              semester,
+              subgroupsCount: 2,
+              subgroupsTimetable: [
                 {
                   up: lessonName,
                   down: this.isCurrentJointLessonPerWeek || isLessonPerWeek ? lessonName : null,
-                  semester: semester,
-                  course: course,
                 },
               ],
             })
-          } else if (!this.hasGroupData(lessonNumber, group)) {
-            this.timetable[WeekDaysMap[this.dayOfWeek]][Lessons[lessonNumber]][group] = [
-              {
-                up: lessonName,
-                down: this.isCurrentJointLessonPerWeek || isLessonPerWeek ? lessonName : null,
-                semester: semester,
-                course: course,
-              },
-            ]
           } else {
-            const groupData =
-              this.timetable[WeekDaysMap[this.dayOfWeek]][Lessons[lessonNumber]][group][0]
-            if (!groupData.down) groupData.down = lessonName
+            const subgroupTimetable = this.timetable[WeekDaysMap[this.dayOfWeek]][
+              Lessons[lessonNumber]
+            ].find((g) => g.name === groupName).subgroupsTimetable[0]
+
+            if (!subgroupTimetable.down) subgroupTimetable.down = lessonName
           }
         } else {
           const columnName1 = this.exlHlpSrv.getNameByColumnNum(this.groupNamesMerge[index].s.c)
@@ -155,43 +165,47 @@ export class TimetableService {
           )
 
           if (!this.hasLessonData(lessonNumber)) {
-            this.timetable[WeekDaysMap[this.dayOfWeek]].push({
-              [group]: [
+            this.timetable[WeekDaysMap[this.dayOfWeek]].push([
+              {
+                name: groupName,
+                course,
+                semester,
+                subgroupsCount: 2,
+                subgroupsTimetable: [
+                  {
+                    up: lessonName1,
+                    down: this.isCurrentJointLessonPerWeek || isLessonPerWeek1 ? lessonName1 : null,
+                  },
+                  {
+                    up: lessonName2,
+                    down: this.isCurrentJointLessonPerWeek || isLessonPerWeek2 ? lessonName2 : null,
+                  },
+                ],
+              },
+            ])
+          } else if (!this.hasGroupData(lessonNumber, groupName)) {
+            this.timetable[WeekDaysMap[this.dayOfWeek]][Lessons[lessonNumber]].push({
+              name: groupName,
+              course,
+              semester,
+              subgroupsCount: 2,
+              subgroupsTimetable: [
                 {
                   up: lessonName1,
                   down: this.isCurrentJointLessonPerWeek || isLessonPerWeek1 ? lessonName1 : null,
-                  semester: semester,
-                  course: course,
                 },
                 {
                   up: lessonName2,
                   down: this.isCurrentJointLessonPerWeek || isLessonPerWeek2 ? lessonName2 : null,
-                  semester: semester,
-                  course: course,
                 },
               ],
             })
-          } else if (!this.hasGroupData(lessonNumber, group)) {
-            this.timetable[WeekDaysMap[this.dayOfWeek]][Lessons[lessonNumber]][group] = [
-              {
-                up: lessonName1,
-                down: this.isCurrentJointLessonPerWeek || isLessonPerWeek1 ? lessonName1 : null,
-                semester: semester,
-                course: course,
-              },
-              {
-                up: lessonName2,
-                down: this.isCurrentJointLessonPerWeek || isLessonPerWeek2 ? lessonName2 : null,
-                semester: semester,
-                course: course,
-              },
-            ]
           } else {
-            const groupData =
-              this.timetable[WeekDaysMap[this.dayOfWeek]][Lessons[lessonNumber]][group]
-
-            if (!groupData[0].down) groupData[0].down = lessonName1
-            if (!groupData[1].down) groupData[1].down = lessonName2
+            const subgroupTimetables = this.timetable[WeekDaysMap[this.dayOfWeek]][
+              Lessons[lessonNumber]
+            ].find((g) => g.name === groupName).subgroupsTimetable
+            if (!subgroupTimetables[0].down) subgroupTimetables[0].down = lessonName1
+            if (!subgroupTimetables[1].down) subgroupTimetables[1].down = lessonName2
           }
         }
       })
@@ -302,11 +316,15 @@ export class TimetableService {
   }
 
   private hasGroupData(lessonNumber: keyof typeof Lessons, group: string) {
-    return this.timetable[WeekDaysMap[this.dayOfWeek]][Lessons[lessonNumber]][group]
+    return Boolean(
+      this.timetable[WeekDaysMap[this.dayOfWeek]][Lessons[lessonNumber]].find(
+        (g) => g.name === group
+      )
+    )
   }
 
   private hasLessonData(lessonNumber: keyof typeof Lessons) {
-    return this.timetable[WeekDaysMap[this.dayOfWeek]][Lessons[lessonNumber]]
+    return Boolean(this.timetable[WeekDaysMap[this.dayOfWeek]][Lessons[lessonNumber]])
   }
 
   private isOneSubGroup(groupNumber: number) {

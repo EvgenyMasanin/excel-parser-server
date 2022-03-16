@@ -1,13 +1,13 @@
 import { SubjectTypes, subjectTypes } from 'src/excel/types'
 import { SubjectsService } from 'src/subjects/subjects.service'
-import { SubgroupNumber, SubjectHours } from './../excel/types'
+import { SubGroupNumber } from '../excel/types'
 import { Injectable } from '@nestjs/common'
 import { Timetable } from 'src/timetable/entities/timetable.entity'
-import { MistakeWithCountOfLessons } from './entities/mistake-with-count-of-lessons'
+import { CountOfLessonsMistake } from './entities/count-of-lessons-mistake'
 import { TimetableMistake } from './entities/timetable-mistake'
 import { TeachersService } from 'src/teachers/teachers.service'
 import { TimetableService } from 'src/timetable/timetable.service'
-import objectEquals from 'src/utils/objectEquals'
+import objectsEquals from 'src/utils/objects-equals'
 import { Group } from 'src/groups/entities/group.entity'
 import { Subject } from 'src/subjects/entities/subject.entity'
 import { Teacher } from 'src/teachers/entities/teacher.entity'
@@ -28,7 +28,7 @@ export class MistakeFinderService {
   }
 
   private async findMistakesWithCountOfLessons() {
-    const mistakes: MistakeWithCountOfLessons[] = []
+    const mistakes: CountOfLessonsMistake[] = []
 
     const subjectsHours = await this.subjectService.findAllSubjectHours({ relations: ['group'] })
 
@@ -47,7 +47,6 @@ export class MistakeFinderService {
           id: teacherToSubjectId,
         },
       })
-      
 
       const lecturesTimetables: Timetable[] = []
       const laboratoriesTimetables: Timetable[] = []
@@ -60,7 +59,7 @@ export class MistakeFinderService {
       }
 
       for (const timetable of timetables) {
-        switch (timetable.type) {
+        switch (timetable.subjectType) {
           case 'lecture':
             lecturesTimetables.push(timetable)
             break
@@ -82,67 +81,16 @@ export class MistakeFinderService {
             subject,
             subjectType,
             hoursPerWeek[`${subjectType}HoursPerWeek`]
-          )
-          // ...(await this.getMistake(
-          //   timetablesByTypes[subjectType],
-          //   teacher,
-          //   subject,
-          //   group,
-          //   hoursPerWeek[`${subjectType}HoursPerWeek`]
-          // ))
+          ),
+          ...(await this.getMistake(
+            timetablesByTypes[subjectType],
+            teacher,
+            subject,
+            group,
+            hoursPerWeek[`${subjectType}HoursPerWeek`]
+          ))
         )
       }
-
-      // mistakes.push(
-      //   ...this.getMistakeIfTimetablesEmpty(
-      //     lecturesTimetables,
-      //     group,
-      //     teacher,
-      //     subject,
-      //     'lecture',
-      //     hoursPerWeek.lectureHoursPerWeek
-      //   ),
-      //   ...this.getMistakeIfTimetablesEmpty(
-      //     laboratoriesTimetables,
-      //     group,
-      //     teacher,
-      //     subject,
-      //     'laboratory',
-      //     hoursPerWeek.laboratoryHoursPerWeek
-      //   ),
-      //   ...this.getMistakeIfTimetablesEmpty(
-      //     practicesTimetables,
-      //     group,
-      //     teacher,
-      //     subject,
-      //     'practice',
-      //     hoursPerWeek.practiceHoursPerWeek
-      //   )
-      // )
-
-      // mistakes.push(
-      //   ...(await this.getMistake(
-      //     lecturesTimetables,
-      //     teacher,
-      //     subject,
-      //     group,
-      //     hoursPerWeek.lectureHoursPerWeek
-      //   )),
-      //   ...(await this.getMistake(
-      //     laboratoriesTimetables,
-      //     teacher,
-      //     subject,
-      //     group,
-      //     hoursPerWeek.laboratoryHoursPerWeek
-      //   )),
-      //   ...(await this.getMistake(
-      //     practicesTimetables,
-      //     teacher,
-      //     subject,
-      //     group,
-      //     hoursPerWeek.practiceHoursPerWeek
-      //   ))
-      // )
     }
 
     return this.filterMistakes(mistakes)
@@ -155,25 +103,24 @@ export class MistakeFinderService {
     subjectType: SubjectTypes,
     expectedHours: number
   ) {
-    const mistakes: MistakeWithCountOfLessons[] = []
+    const mistakes: CountOfLessonsMistake[] = []
     if (timetables.length === 0) {
-      for (let groupNumber = 1; groupNumber <= group.countOfSubGroups; groupNumber++) {
-        mistakes.push(
-          new MistakeWithCountOfLessons(
-            teacher,
-            subject,
-            group,
-            subjectType,
-            groupNumber as SubgroupNumber,
-            expectedHours,
-            0
+      for (let groupNumber = 1; groupNumber <= group.subGroupsCount; groupNumber++) {
+        if (expectedHours !== 0)
+          mistakes.push(
+            new CountOfLessonsMistake(
+              teacher,
+              subject,
+              group,
+              subjectType,
+              groupNumber as SubGroupNumber,
+              expectedHours,
+              0
+            )
           )
-        )
       }
     }
-    if (teacher.name === 'Широченко В.А.') {
-      console.log(teacher.name, subject.name, group.countOfSubGroups)
-    }
+
     return mistakes
   }
 
@@ -184,18 +131,18 @@ export class MistakeFinderService {
     group: Group,
     expectedHours: number
   ) {
-    const mistakes: MistakeWithCountOfLessons[] = []
+    const mistakes: CountOfLessonsMistake[] = []
     for (const timetable of timetables) {
       const countOfLessons = this.getCountOfLessons(timetables, timetable)
       const errorRate = Math.abs(expectedHours - countOfLessons)
 
       if (errorRate > 0.5) {
         mistakes.push(
-          new MistakeWithCountOfLessons(
+          new CountOfLessonsMistake(
             teacher,
             subject,
             group,
-            timetable.type,
+            timetable.subjectType,
             timetable.subGroupNum,
             expectedHours,
             countOfLessons
@@ -212,7 +159,7 @@ export class MistakeFinderService {
     return timetables.map<TimetableMistake>((timetable) => new TimetableMistake(timetable))
   }
 
-  private filterMistakes(mistakes: MistakeWithCountOfLessons[]) {
+  private filterMistakes(mistakes: CountOfLessonsMistake[]) {
     return mistakes.filter(
       (mistake, index) => index === mistakes.findIndex((m) => this.mistakesEquals(m, mistake))
     )
@@ -227,7 +174,7 @@ export class MistakeFinderService {
     }, 0)
   }
 
-  private mistakesEquals(mistake1: MistakeWithCountOfLessons, mistake2: MistakeWithCountOfLessons) {
-    return objectEquals(mistake1, mistake2)
+  private mistakesEquals(mistake1: CountOfLessonsMistake, mistake2: CountOfLessonsMistake) {
+    return objectsEquals(mistake1, mistake2)
   }
 }

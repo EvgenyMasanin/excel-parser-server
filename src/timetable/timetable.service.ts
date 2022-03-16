@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm'
 import { TimetableWithAdditionalData } from 'src/mistake-finder/entities/timetable-mistake'
 import { Subject } from 'src/subjects/entities/subject.entity'
 import { Teacher } from 'src/teachers/entities/teacher.entity'
-import objectEquals from 'src/utils/objectEquals'
+import objectsEquals from 'src/utils/objects-equals'
 import { FindManyOptions, Repository } from 'typeorm'
 import { CreateTimetableDto } from './dto/create-timetable.dto'
 import { UpdateTimetableDto } from './dto/update-timetable.dto'
@@ -58,11 +58,11 @@ export class TimetableService {
   }
 
   timetablesEquals(timetable1: Timetable, timetable2: Timetable) {
-    return objectEquals(timetable1, timetable2, [
+    return objectsEquals(timetable1, timetable2, [
       'groupId',
       'subGroupNum',
       'teacherToSubjectId',
-      'type',
+      'subjectType',
     ])
   }
 

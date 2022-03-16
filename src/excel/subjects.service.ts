@@ -1,160 +1,147 @@
-import { Injectable } from '@nestjs/common'
+import { forwardRef, Inject, Injectable } from '@nestjs/common'
 import { ExcelHelperService } from './excel-helper.service'
+import { TeachersService } from './teachers.service'
 import {
   CourseNum,
-  courses,
   ExcelSubject,
   Table,
-  TableRow,
-  ExcelTeacher,
   Semester,
   SubjectTypes,
   ExcelTeacherPayload,
+  GroupData,
+  SubjectHours,
+  TeacherInfo,
+  SubGroupNumber,
 } from './types'
+
+import ExcelTeacher from './types/teacher.types'
+
+export type TeacherDataAndSubject = {
+  teacherData: {
+    name: string
+    position: string
+  }
+  subjects: ExcelSubject[]
+}
 
 @Injectable()
 export class SubjectsService {
-  constructor(private readonly excelHelperService: ExcelHelperService) {}
+  constructor(
+    private readonly excelHelperService: ExcelHelperService,
+    @Inject(forwardRef(() => TeachersService))
+    private readonly teacherService: TeachersService
+  ) {}
 
-  getSubjectData(
+  getTeachersDataAndSubjects(
     table: Table,
     row: number,
-    columns: TableRow,
+    groupsNames: string[],
     semester: Semester,
-    teacherName: string
-  ): { subjects: ExcelSubject[]; groupName: string } {
-    let realRow = row
+    course: CourseNum
+  ): TeacherDataAndSubject[] {
+    const columns = table[row]
 
-    while (!table[realRow]?.B && !table[realRow]?.C) realRow--
+    const groupsCount = groupsNames.length
 
-    const realColumns = table[realRow]
+    const teachersData = this.getTeachersData(table, row, groupsCount)
 
-    const subGroup = row - realRow
+    const subjectsNames = this.getSubjectNames(columns.B)
 
-    const groupName = this.formatGroupName(realColumns.C)
+    const teachers = teachersData
+      .map(({ name, position }) => {
+        if (!name) return
+        const groups = this.getGroups(table, row, groupsNames, name)
 
-    const allGroups = []
+        const subjects = this.getSubjects(subjectsNames, course, semester, groups)
 
-    let i = realRow
-    do {
-      allGroups.push(table[i].C)
-      i += 2
-    } while (table[i]?.C && !table[i]?.B && realColumns.F === teacherName)
+        return { teacherData: { name, position }, subjects }
+      })
+      .filter(Boolean)
+    return teachers
+  }
 
-    let lecture = 0
+  private getGroups(table: Table, row: number, groupsNames: string[], teacherName: string) {
+    const columns = table[row]
 
-    if (realColumns.B) {
-      lecture = this.excelHelperService.toNumber(
-        realColumns.F === teacherName ? this.excelHelperService.toNumber(realColumns.D ?? 0) : 0
-      )
-    } else {
-      lecture = this.excelHelperService.toNumber(
-        table[realRow - 2].F === teacherName ? table[realRow - 2].D : 0
-      )
-    }
-    const subjectsNames = this.formatSubjectName(realColumns.B || table[realRow - 2].B)
+    return groupsNames
+      .map<GroupData>((groupName, i) => {
+        const currentRow = row + i * 2
+        const currentColumns = table[currentRow]
+
+        const subGroupsCount = this.getSubGroupsCount(table, currentRow)
+
+        const lectorInfo = this.teacherService.getTeacherInfo(columns.F)
+
+        const laboratoryTeacherInfo = this.teacherService.getTeacherInfo(currentColumns.I)
+        const practiceTeacherInfo = this.teacherService.getTeacherInfo(currentColumns.L)
+
+        const hoursPerWeek: SubjectHours = {
+          lecture:
+            teacherName === lectorInfo.name ? this.excelHelperService.toNumber(columns.D) : 0,
+          laboratory:
+            teacherName === laboratoryTeacherInfo.name
+              ? this.excelHelperService.toNumber(currentColumns.G)
+              : 0,
+          practice:
+            teacherName === practiceTeacherInfo.name
+              ? this.excelHelperService.toNumber(currentColumns.J)
+              : 0,
+        }
+
+        if (!this.isTeacherTeach(hoursPerWeek)) return
+
+        return {
+          name: this.formatGroupName(groupName),
+          subGroupsCount,
+          hoursPerWeek,
+          subGroups: [],
+        }
+      })
+      .filter(Boolean)
+  }
+
+  private getSubjects(
+    subjectsNames: string[],
+    course: CourseNum,
+    semester: Semester,
+    groups: GroupData[]
+  ) {
+    return subjectsNames.map<ExcelSubject>((subjectName) => ({
+      name: subjectName,
+      course,
+      semester,
+      groups: [...groups],
+      hoursPerSemester: null,
+    }))
+  }
+
+  private isTeacherTeach(hoursPerWeek: SubjectHours) {
+    return (
+      hoursPerWeek.lecture !== 0 || hoursPerWeek.laboratory !== 0 || hoursPerWeek.practice !== 0
+    )
+  }
+
+  private getSubjectNames(subjectsNames: string) {
+    return this.formatSubjectName(subjectsNames)
       .split('/')
       .map((name) => name.trim())
-
-    const subjects = subjectsNames.map((subjectName) => {
-      const subject: ExcelSubject = {
-        name: subjectName,
-        semester,
-        groups: {
-          [groupName]: {
-            hoursPerWeek: {
-              lecture: [lecture],
-              laboratory: [],
-              practice: [],
-            },
-            subGroups: [],
-          },
-        },
-        hoursPerSemester: null,
-      }
-
-      if (this.excelHelperService.toNumber(columns.G ?? 0) !== 0) {
-        subject.groups[groupName].hoursPerWeek.laboratory.push(
-          ...Array(subGroup).fill(0),
-          this.excelHelperService.toNumber(columns.G ?? 0)
-        )
-      }
-      if (this.excelHelperService.toNumber(columns.J ?? 0) !== 0) {
-        subject.groups[groupName].hoursPerWeek.practice.push(
-          ...Array(subGroup).fill(0),
-          this.excelHelperService.toNumber(columns.J ?? 0)
-        )
-      }
-      return subject
-    })
-
-    return { subjects, groupName }
   }
 
-  mergeSubjects(firstTeacher: ExcelTeacher, secondTeacher: ExcelTeacher): ExcelTeacher {
-    return {
-      name: firstTeacher.name,
-      position: firstTeacher.position,
-      course: {
-        first: [...firstTeacher.course.first, ...secondTeacher.course.first],
-        second: [...firstTeacher.course.second, ...secondTeacher.course.second],
-        thead: [...firstTeacher.course.thead, ...secondTeacher.course.thead],
-        fourth: [...firstTeacher.course.fourth, ...secondTeacher.course.fourth],
-        fifth: [...firstTeacher.course.fifth, ...secondTeacher.course.fifth],
-      },
+  private getTeachersData(table: Table, row: number, groupsCount: number): TeacherInfo[] {
+    const teachersSet = new Set<string>()
+
+    for (let i = row; i < row + groupsCount; i++) {
+      teachersSet.add(table[i].F)
+      teachersSet.add(table[i].I)
+      teachersSet.add(table[i].L)
     }
+    return [...teachersSet]
+      .map((teacherData) => this.teacherService.getTeacherInfo(teacherData))
+      .filter(Boolean)
   }
 
-  mergeSubjectData(
-    table: Table,
-    row: number,
-    teacher: ExcelTeacher,
-    course: CourseNum,
-    groupName: string
-  ) {
-    let realRow = row
-    while (!table[realRow].B) realRow--
-
-    const realColumns = table[realRow]
-    const columns = table[row]
-    const subject = teacher.course[courses[course]].find((subj) =>
-      this.formatSubjectName(realColumns.B).includes(subj.name)
-    )
-
-    if (this.excelHelperService.toNumber(columns.G ?? 0) !== 0)
-      subject.groups[groupName].hoursPerWeek.laboratory.push(
-        this.excelHelperService.toNumber(columns.G ?? 0)
-      )
-    if (this.excelHelperService.toNumber(columns.J ?? 0) !== 0)
-      subject.groups[groupName].hoursPerWeek.practice.push(
-        this.excelHelperService.toNumber(columns.J ?? 0)
-      )
-    return teacher.course
-  }
-
-  setHoursPerSemester(teachers: ExcelTeacher[], teachersPayload: ExcelTeacherPayload[]) {
-    teachers.forEach((teacher) => {
-      const teacherPayload = teachersPayload.find((teacherPayload) => {
-        return teacherPayload.fullName === teacher.name
-      })
-
-      if (teacherPayload) {
-        teacher.course.first.forEach((subject) => {
-          this.setHours(subject, teacherPayload)
-        })
-        teacher.course.second.forEach((subject) => {
-          this.setHours(subject, teacherPayload)
-        })
-        teacher.course.thead.forEach((subject) => {
-          this.setHours(subject, teacherPayload)
-        })
-        teacher.course.fourth.forEach((subject) => {
-          this.setHours(subject, teacherPayload)
-        })
-      }
-    })
-
-    return teachers
+  private getSubGroupsCount(table: Table, row: number): SubGroupNumber {
+    return table[row + 1]?.G || table[row + 1]?.J ? 2 : 1
   }
 
   private setHours(subject: ExcelSubject, teacherPayload: ExcelTeacherPayload) {
@@ -167,7 +154,50 @@ export class SubjectsService {
     }
   }
 
-  isSameSubject(firstSubject: string, secondSubject: string) {
+  private isAbbreviation(str: string) {
+    return str.split('').every((letter) => letter.match(/[A-ZА-Я]/))
+  }
+
+  private formatGroupName(groupName: string) {
+    let isMiss = false
+    return groupName
+      .split('')
+      .map((letter) => {
+        if (letter === '-') isMiss = false
+        if (letter !== '_' && !isMiss) return letter
+        if (letter === '_') {
+          isMiss = true
+          return ''
+        }
+      })
+      .join('')
+  }
+
+  mergeSubjects(firstTeacher: ExcelTeacher, secondTeacher: ExcelTeacher): ExcelTeacher {
+    return {
+      name: firstTeacher.name,
+      position: firstTeacher.position,
+      subjects: [...firstTeacher.subjects, ...secondTeacher.subjects],
+    }
+  }
+
+  setHoursPerSemester(teachers: ExcelTeacher[], teachersPayload: ExcelTeacherPayload[]) {
+    teachers.forEach((teacher) => {
+      const teacherPayload = teachersPayload.find((teacherPayload) => {
+        return teacherPayload.fullName === teacher.name
+      })
+
+      if (teacherPayload) {
+        teacher.subjects.forEach((subject) => {
+          this.setHours(subject, teacherPayload)
+        })
+      }
+    })
+
+    return teachers
+  }
+
+  isSameSubjectName(firstSubject: string, secondSubject: string) {
     const [firstSubjectName, firstSubjectAbbreviation] =
       this.getSubjectNameAndAbbreviation(firstSubject)
     const [secondSubjectName, secondSubjectAbbreviation] =
@@ -205,32 +235,12 @@ export class SubjectsService {
         .join('')
         .toLocaleLowerCase()
     )
-    // console.log(name, abbreviations)
 
     return [name?.toLowerCase(), abbreviations]
   }
 
-  private isAbbreviation(str: string) {
-    return str.split('').every((letter) => letter.match(/[A-ZА-Я]/))
-  }
-
   formatSubjectName(subjectName: string) {
     return subjectName?.split('(')[0].trim()
-  }
-
-  formatGroupName(groupName: string) {
-    let isMiss = false
-    return groupName
-      .split('')
-      .map((letter) => {
-        if (letter === '-') isMiss = false
-        if (letter !== '_' && !isMiss) return letter
-        if (letter === '_') {
-          isMiss = true
-          return ''
-        }
-      })
-      .join('')
   }
 
   getTypeOfSubject(subjectName: string): SubjectTypes {

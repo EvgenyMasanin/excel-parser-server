@@ -1,10 +1,9 @@
-import { SubgroupNumber, SubjectTypes } from 'src/excel/types'
+import { SubGroupNumber, SubjectTypes } from 'src/excel/types'
 import { Group } from 'src/groups/entities/group.entity'
 import { Subject } from 'src/subjects/entities/subject.entity'
 import { Teacher } from 'src/teachers/entities/teacher.entity'
-import { Timetable } from 'src/timetable/entities/timetable.entity'
 
-export class MistakeWithCountOfLessons {
+export class CountOfLessonsMistake {
   readonly teacherId: number
   readonly teacherName: string
   readonly subjectId: number
@@ -12,7 +11,7 @@ export class MistakeWithCountOfLessons {
   readonly subjectType: SubjectTypes
   readonly groupId: number
   readonly groupName: string
-  readonly subgroupNum: SubgroupNumber
+  readonly subgroupNum: SubGroupNumber
   readonly expectedHoursPerWeek: number
   readonly realHoursPerWeek: number
 
@@ -21,7 +20,7 @@ export class MistakeWithCountOfLessons {
     subject: Subject,
     group: Group,
     subjectType: SubjectTypes,
-    subgroupNum: SubgroupNumber,
+    subgroupNum: SubGroupNumber,
     expectedHoursPerWeek: number,
     realHoursPerWeek: number
   ) {

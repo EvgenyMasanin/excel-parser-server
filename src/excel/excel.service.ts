@@ -54,12 +54,16 @@ export class ExcelService {
     const teachersPayload = this.teachersPayloadService.getTeachersPayload(teachersPayloadTable)
 
     const teachers1 = this.subjectService.setHoursPerSemester(teachers, teachersPayload)
+    // const teachers1 = this.subjectService.setHoursPerSemester(
+    //   firstSemesterTeachers,
+    //   teachersPayload
+    // )
     const timeTable = this.getTimeTable()
 
     const testDataTeachers = this.teachersService.setLessonDataToTeachers(teachers1, timeTable)
 
-    // await this.excelRepositoryService.saveToDB(testDataTeachers)
-
+    await this.excelRepositoryService.saveToDB(testDataTeachers)
+    // return teachers1
     return testDataTeachers
   }
 
@@ -70,6 +74,7 @@ export class ExcelService {
     const file4 = 'static/ATF_4_new.xlsx'
     const file5 = 'static/ATF_5.xlsx'
     const files = [file1, file2, file3, file4, file5]
+    // const files = [file4]
 
     return files.map((file) => {
       const table = xlsx.readFile(file)

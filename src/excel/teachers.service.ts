@@ -1,197 +1,124 @@
 import { Injectable } from '@nestjs/common'
-import { ExcelHelperService } from './excel-helper.service'
 import { SubjectsService } from './subjects.service'
+import isOdd from 'src/utils/is-odd'
+import objectsEquals from 'src/utils/objects-equals'
+import ExcelTeacher from './types/teacher.types'
+
 import {
   GroupData,
-  TableRow,
-  SubGroupData,
   WeekType,
   CourseNum,
-  courses,
   ExcelSubject,
   Table,
-  ExcelTeacher,
   Semester,
   Timetable,
   WeekDaysEN,
   TeacherInfo,
+  SubGroupTimetable,
 } from './types'
 
 @Injectable()
 export class TeachersService {
-  constructor(
-    private readonly subjectService: SubjectsService,
-    private readonly excelHelperService: ExcelHelperService
-  ) {}
+  constructor(private readonly subjectService: SubjectsService) {}
 
   getTeachers(table: Table, semester: Semester) {
     const courseNumCounter = this.getCourseNumCounter()
 
     const teachers: ExcelTeacher[] = []
 
-    Object.keys(table).forEach((key) => {
+    const tableEntries = Object.entries(table)
+
+    for (let i = 0; i < tableEntries.length; i++) {
+      const [key, columns] = tableEntries[i]
+
       const row = +key
-      const columns = table[key]
+      if (isOdd(row)) continue
 
       const course = courseNumCounter(columns.B ?? '')
 
-      if (course === 0) return
+      if (course === 0) continue
+      if (!columns.I && !columns.F && !columns.L) continue
+      const groupNames = this.getGroupsNames(table, row)
+      const groupsCount = groupNames.length
 
-      if (!columns.I && !columns.F && !columns.L) return
-
-      const { name, position } = this.getTeacherInfo(
-        columns.I ? columns.I : columns.L ? columns.L : columns.F
-      )
-
-      const lectorInfo = this.getTeacherInfo(columns.F)
-      const { subjects: lectorsSubjects, groupName } = this.subjectService.getSubjectData(
-        table,
-        row,
-        columns,
-        semester,
-        `${lectorInfo.position}, ${lectorInfo.name}`
-      )
-      const { subjects } = this.subjectService.getSubjectData(
-        table,
-        row,
-        columns,
-        semester,
-        `${position}, ${name}`
-      )
-
-      lectorsSubjects.forEach((subject) => {
-        const { lectorName, lectorPosition, lectorSubject } = this.getLector(
-          lectorInfo,
-          subject,
-          columns,
-          row,
-          table
-        )
-
-        const currentLector = teachers.find((teacher) => teacher.name === lectorName)
-        if (lectorName) {
-          if (!currentLector) {
-            const teacher: ExcelTeacher = {
-              name: lectorName,
-              position: lectorPosition,
-              course: {
-                first: [],
-                second: [],
-                thead: [],
-                fourth: [],
-                fifth: [],
-              },
-            }
-
-            teacher.course[courses[course]].push(lectorSubject)
-
-            teachers.push(teacher)
-          } else if (!this.hasSubject(currentLector, lectorSubject, course)) {
-            currentLector.course[courses[course]].push(lectorSubject)
-          }
+      if (groupsCount !== 1) {
+        while (+tableEntries[i][0] < row + groupsCount * 2 - 2) {
+          i++
         }
-      })
-      subjects.forEach((subject) => {
+      }
+
+      const teachersDataAndSubjects = this.subjectService.getTeachersDataAndSubjects(
+        table,
+        row,
+        groupNames,
+        semester,
+        course
+      )
+
+      teachersDataAndSubjects.forEach(({ teacherData: { name, position }, subjects }) => {
         const currentTeacher = teachers.find((teacher) => teacher.name === name)
-
         if (!currentTeacher) {
-          const teacher: ExcelTeacher = {
-            name,
-            position,
-            course: { first: [], second: [], thead: [], fourth: [], fifth: [] },
-          }
-
-          teacher.course[courses[course]].push(subject)
-
+          const teacher = new ExcelTeacher(name, position)
+          teacher.subjects.push(...subjects)
           teachers.push(teacher)
-        } else if (!this.hasSubject(currentTeacher, subject, course)) {
-          currentTeacher.course[courses[course]].push(subject)
-        } else if (
-          !currentTeacher.course[courses[course]].find(({ groups }) => groupName in groups)
-        ) {
-          currentTeacher.course[courses[course]].find(({ name }) => name === subject.name).groups[
-            groupName
-          ] = subject.groups[groupName]
         } else {
-          this.subjectService.mergeSubjectData(table, row, currentTeacher, course, groupName)
+          subjects.forEach((subject) => {
+            const currentSubject = currentTeacher.subjects.find((s) =>
+              this.subjectsEquals(s, subject)
+            )
+
+            if (currentSubject) {
+              currentSubject.groups.push(...subject.groups)
+            } else {
+              currentTeacher.subjects.push(subject)
+            }
+          })
         }
       })
-    })
+    }
 
     return teachers
   }
 
-  private getLector(
-    lectorInfo: TeacherInfo,
-    lectorSubject: ExcelSubject,
-    columns: TableRow,
-    row: number,
-    table: Table
-  ) {
-    const { name, position } = lectorInfo
-    let subject: ExcelSubject
-    if (name) {
-      const groups: string[] = []
-      let i = row
-      do {
-        groups.push(this.subjectService.formatGroupName(table[i].C))
-        i += 2
-      } while (table[i]?.C && !table[i]?.B)
+  private subjectsEquals(subject1: ExcelSubject, subject2: ExcelSubject) {
+    return objectsEquals(subject1, subject2, ['name', 'course', 'semester'])
+  }
 
-      subject = lectorSubject
-
-      subject.groups = {}
-      groups.forEach((group) => {
-        subject.groups[group] = {
-          hoursPerWeek: {
-            lecture: [this.excelHelperService.toNumber(columns.D)],
-            // lecture: [columns.D],
-            laboratory: [],
-            practice: [],
-          },
-          subGroups: [],
-        }
-      })
-    }
-
-    return {
-      lectorName: name,
-      lectorPosition: position,
-      lectorSubject: subject,
-    }
+  private getGroupsNames(table: Table, row: number): string[] {
+    const groupsNames: string[] = []
+    do {
+      groupsNames.push(table[row]?.C)
+      row += 2
+    } while (!table[row]?.B && table[row]?.C)
+    return groupsNames
   }
 
   setLessonDataToTeachers(teachers: ExcelTeacher[], timeTables: Timetable[]) {
     teachers.forEach((teacher) => {
-      Object.entries(teacher.course).forEach(([course, subjects]) => {
-        subjects.forEach((subject) => {
-          Object.entries(subject.groups).forEach(([groupName, groupData]) => {
-            timeTables.forEach((timeTable) => {
-              Object.entries(timeTable).forEach(([weekDay, lessons]) => {
-                lessons.forEach((lesson, lessonNumber) => {
-                  Object.entries(lesson).forEach(([groupNameT, subGroups]) => {
-                    if (groupName === groupNameT) {
-                      subGroups.forEach((subGroupData, subGroupNumber) => {
-                        if (
-                          course === courses[subGroupData.course] &&
-                          subject.semester === subGroupData.semester
-                        ) {
-                          if (!groupData.subGroups[subGroupNumber]) {
-                            groupData.subGroups[subGroupNumber] = []
-                          }
-
-                          this.setSubjectData(
-                            subject,
-                            groupData,
-                            subGroupData,
-                            subGroupNumber,
-                            weekDay as WeekDaysEN,
-                            lessonNumber + 1
-                          )
+      teacher.subjects.forEach((subject) => {
+        subject.groups.forEach((groupData) => {
+          timeTables.forEach((timeTable) => {
+            Object.entries(timeTable).forEach(([weekDay, lessons]) => {
+              lessons.forEach((lesson, lessonNumber) => {
+                lesson.forEach((group) => {
+                  if (groupData.name === group.name) {
+                    group.subgroupsTimetable.forEach((subGroupData, subGroupNumber) => {
+                      if (subject.course === group.course && subject.semester === group.semester) {
+                        if (!groupData.subGroups[subGroupNumber]) {
+                          groupData.subGroups[subGroupNumber] = []
                         }
-                      })
-                    }
-                  })
+
+                        this.setSubjectData(
+                          subject,
+                          groupData,
+                          subGroupData,
+                          subGroupNumber,
+                          weekDay as WeekDaysEN,
+                          lessonNumber + 1
+                        )
+                      }
+                    })
+                  }
                 })
               })
             })
@@ -203,10 +130,10 @@ export class TeachersService {
     return teachers
   }
 
-  setSubjectData(
+  private setSubjectData(
     subject: ExcelSubject,
     groupData: GroupData,
-    subGroupData: SubGroupData,
+    subGroupData: SubGroupTimetable,
     subGroupNumber: number,
     weekDay: WeekDaysEN,
     lessonNumber: number
@@ -214,35 +141,35 @@ export class TeachersService {
     const typeOfSubject1 = this.subjectService.getTypeOfSubject(subGroupData.up)
     const typeOfSubject2 = this.subjectService.getTypeOfSubject(subGroupData.down)
 
-    const subjectHours1 = [...groupData.hoursPerWeek[typeOfSubject1]]
-    const subjectHours2 = [...groupData.hoursPerWeek[typeOfSubject2]]
+    const subjectHours1 = groupData.hoursPerWeek[typeOfSubject1]
+    const subjectHours2 = groupData.hoursPerWeek[typeOfSubject2]
 
     let type: WeekType
     let lessonName: string
 
     if (
-      this.subjectService.isSameSubject(subject.name, subGroupData.up) &&
-      this.subjectService.isSameSubject(subject.name, subGroupData.down)
+      this.subjectService.isSameSubjectName(subject.name, subGroupData.up) &&
+      this.subjectService.isSameSubjectName(subject.name, subGroupData.down)
     ) {
       type = 'up/down'
       lessonName = subGroupData.up
     } else {
-      if (this.subjectService.isSameSubject(subject.name, subGroupData.up)) {
+      if (this.subjectService.isSameSubjectName(subject.name, subGroupData.up)) {
         type = 'up'
         lessonName = subGroupData.up
       }
-      if (this.subjectService.isSameSubject(subject.name, subGroupData.down)) {
+      if (this.subjectService.isSameSubjectName(subject.name, subGroupData.down)) {
         type = 'down'
         lessonName = subGroupData.down
       }
     }
     let shouldPush = true
-    if (!subjectHours1[0] && (type === 'up' || type === 'up/down')) shouldPush = false
-    if (!subjectHours2[0] && (type === 'down' || type === 'up/down')) shouldPush = false
+    if (!subjectHours1 && (type === 'up' || type === 'up/down')) shouldPush = false
+    if (!subjectHours2 && (type === 'down' || type === 'up/down')) shouldPush = false
 
     if (shouldPush && type && lessonName) {
       groupData.subGroups[subGroupNumber].push({
-        type,
+        weekType: type,
         weekDay,
         lessonName,
         lessonNumber,
@@ -278,10 +205,7 @@ export class TeachersService {
     }
   }
 
-  private hasSubject(teacher: ExcelTeacher, subject: ExcelSubject, course: CourseNum) {
-    return teacher.course[courses[course]].some((subj) => subj.name === subject.name)
-  }
-//FIXME:
+  //FIXME:
   private getCourseNumCounter() {
     enum CoursesEnum {
       first = 'Курс 1',

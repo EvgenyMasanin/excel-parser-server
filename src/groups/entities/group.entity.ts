@@ -1,7 +1,7 @@
-import { SubjectHours } from '../../subjects/entities/subject-hours.entity';
+import { SubjectHours } from '../../subjects/entities/subject-hours.entity'
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
 import { Timetable } from 'src/timetable/entities/timetable.entity'
-import { SubgroupNumber } from 'src/excel/types';
+import { SubGroupNumber, subGroupNumber } from 'src/excel/types'
 
 @Entity()
 export class Group {
@@ -14,7 +14,7 @@ export class Group {
   name: string
 
   @Column()
-  countOfSubGroups: SubgroupNumber
+  subGroupsCount: SubGroupNumber
 
   @OneToMany(() => Timetable, (timetable) => timetable.group)
   timetables: Timetable[]

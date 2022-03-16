@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common'
-import { WorkSheet } from 'xlsx'
+import { WorkSheet, CellObject } from 'xlsx'
 import { Table } from './types'
 
 type ColumnName = 'A' | 'B' | 'C' | 'D' | 'E' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M'
@@ -14,17 +14,20 @@ export class ExcelHelperService {
       return accum
     }, {} as Omit<WorkSheet, '!margins' | '!merges'>)
 
-    const table = {} as Table
-    Object.keys(staffData).forEach((key) => {
-      const row = this.getNumOfRow(key)
-      const column = this.getColumnName(key)
+    const table: Table = {}
+    Object.keys(staffData).forEach((cellName) => {
+      const row = this.getNumOfRow(cellName)
+      const column = this.getColumnName(cellName)
       table[row] = { ...table[row] }
-      table[row][column] = staffData[key].v as never
+      const cell: CellObject = staffData[cellName]
+
+      table[row][column] = cell.v?.toString()
     })
     return table
   }
 
-  toNumber(str: string | number) {
+  toNumber(str: string | number | undefined) {
+    if (!str) return 0
     if (typeof str === 'number') return str
     return +str.split(',').join('.')
   }

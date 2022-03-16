@@ -1,5 +1,6 @@
+import { CourseNum } from './../../excel/types/index'
 import { Semester, SubjectTypes } from 'src/excel/types'
-import { SubgroupNumber, WeekDaysEN } from 'src/excel/types'
+import { SubGroupNumber, WeekDaysEN } from 'src/excel/types'
 import { Group } from 'src/groups/entities/group.entity'
 import { Subject } from 'src/subjects/entities/subject.entity'
 import { Teacher } from 'src/teachers/entities/teacher.entity'
@@ -19,15 +20,15 @@ export class TimetableMistake {
   readonly subjectName: string
   readonly groupId: number
   readonly groupName: string
-  readonly subGroupNum: SubgroupNumber
+  readonly subGroupNum: SubGroupNumber
   readonly semester: Semester
-  readonly course: string
+  readonly course: CourseNum
   readonly lessonNumber: number
   readonly weekDay: WeekDaysEN
   readonly type: SubjectTypes
   readonly auditorium: number
   readonly campus: number
-  
+
   constructor(timetable: TimetableWithAdditionalData) {
     this.teacherId = timetable.teacher.id
     this.teacherName = timetable.teacher.name
@@ -41,7 +42,7 @@ export class TimetableMistake {
     this.course = timetable.course
     this.lessonNumber = timetable.lessonNumber
     this.weekDay = timetable.weekDay
-    this.type = timetable.type
+    this.type = timetable.subjectType
     this.auditorium = timetable.auditorium
     this.campus = timetable.campus
   }

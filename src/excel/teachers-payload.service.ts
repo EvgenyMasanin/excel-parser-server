@@ -2,7 +2,7 @@ import { Injectable } from '@nestjs/common'
 import { SubjectsService } from './subjects.service'
 import { ExcelHelperService } from './excel-helper.service'
 import { Table, Semester, ExcelTeacherPayload, ExcelSubjectPayload } from './types'
-
+//FIXME: wrong hours per semester
 @Injectable()
 export class TeachersPayloadService {
   constructor(

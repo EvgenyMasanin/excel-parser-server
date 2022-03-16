@@ -8,10 +8,11 @@ import {
   WeekType,
   WeekDaysEN,
   subjectTypes,
-  subgroupNumber,
-  SubgroupNumber,
+  subGroupNumber,
+  SubGroupNumber,
   semester,
   weekType,
+  CourseNum,
 } from 'src/excel/types'
 
 @Entity()
@@ -33,14 +34,14 @@ export class Timetable {
   @JoinColumn({ name: 'groupId' })
   group: Group
 
-  @Column('enum', { enum: subgroupNumber })
-  subGroupNum: SubgroupNumber
+  @Column()
+  subGroupNum: SubGroupNumber
 
   @Column('enum', { enum: WeekDaysMap })
   weekDay: WeekDaysEN
 
   @Column('enum', { enum: subjectTypes })
-  type: SubjectTypes
+  subjectType: SubjectTypes
 
   @Column({ nullable: true })
   hoursPerSemester: number
@@ -52,7 +53,7 @@ export class Timetable {
   semester: Semester
 
   @Column()
-  course: string
+  course: CourseNum
 
   @Column()
   lessonNumber: number

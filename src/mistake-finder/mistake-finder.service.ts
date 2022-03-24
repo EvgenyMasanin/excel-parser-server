@@ -154,7 +154,7 @@ export class MistakeFinderService {
   }
 
   private async findTimetableMistakes() {
-    const timetables = await this.timetableService.findAllTimetableWithAdditionalData()
+    const timetables = await this.timetableService.findAllTimetableWithMistakes()
 
     return timetables.map<TimetableMistake>((timetable) => new TimetableMistake(timetable))
   }

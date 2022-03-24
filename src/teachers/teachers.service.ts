@@ -1,13 +1,13 @@
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { Subject } from 'src/subjects/entities/subject.entity'
-import { FindConditions, FindOneOptions, Repository } from 'typeorm'
+import { FindOneOptions, Repository } from 'typeorm'
 import { CreateTeacherToSubjectDto } from './dto/create-teacher-to-subject.dto'
 import { CreateTeacherDto } from './dto/create-teacher.dto'
 import { UpdateTeacherDto } from './dto/update-teacher.dto'
 import { TeacherToSubject } from './entities/teacher-to-subject.entity'
 import { Teacher } from './entities/teacher.entity'
-import { TeacherWithAdditionalData } from './tipes'
+import { TeacherWithAdditionalData } from './types'
 
 @Injectable()
 export class TeachersService {
@@ -27,6 +27,17 @@ export class TeachersService {
   }
   async findOneTeacherToSubject(options?: FindOneOptions<TeacherToSubject>) {
     return await this.teacherToSubjectRepository.findOne(options)
+  }
+
+  async findAllTeachersToSubjects() {
+    return await this.teacherToSubjectRepository.find()
+  }
+
+  async findAllTeacherToSubjectByTeacherId(teacherId: number) {
+    return await this.teacherToSubjectRepository.find({
+      where: { teacherId },
+      select: ['id'],
+    })
   }
 
   async findOneOrCreateTeacherToSubject(createTeacherToSubjectDto: CreateTeacherToSubjectDto) {
@@ -49,11 +60,11 @@ export class TeachersService {
       .getMany()) as TeacherWithAdditionalData[]
 
   findAll() {
-    return `This action returns all teachers`
+    return this.teacherRepository.find()
   }
 
   findOne(id: number) {
-    return `This action returns a #${id} teacher`
+    return this.teacherRepository.findOne(id)
   }
 
   update(id: number, updateTeacherDto: UpdateTeacherDto) {

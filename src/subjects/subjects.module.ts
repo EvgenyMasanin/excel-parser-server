@@ -9,6 +9,7 @@ import { SubjectHours } from './entities/subject-hours.entity'
 @Module({
   controllers: [SubjectsController],
   providers: [SubjectsService],
-  imports: [TypeOrmModule.forFeature([Subject, SubjectHours, Group])],
+  exports: [SubjectsService],
+  imports: [TypeOrmModule.forFeature([Subject, SubjectHours])],
 })
 export class SubjectsModule {}

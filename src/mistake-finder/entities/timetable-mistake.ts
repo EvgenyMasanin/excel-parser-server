@@ -6,11 +6,11 @@ import { Subject } from 'src/subjects/entities/subject.entity'
 import { Teacher } from 'src/teachers/entities/teacher.entity'
 import { Timetable } from 'src/timetable/entities/timetable.entity'
 
-export type TimetableWithAdditionalData = Timetable & {
-  teacher: Teacher
-  subject: Subject
-  group: Group
-}
+type WithTeacher<T extends Timetable> = T & { teacher: Teacher }
+type WithSubject<T extends Timetable> = T & { subject: Subject }
+
+export type TimetableWithTeacherAndSubject = WithSubject<WithTeacher<Timetable>>
+export type TimetableWithSubject = WithSubject<Timetable>
 
 export class TimetableMistake {
   readonly teacherId: number
@@ -29,7 +29,7 @@ export class TimetableMistake {
   readonly auditorium: number
   readonly campus: number
 
-  constructor(timetable: TimetableWithAdditionalData) {
+  constructor(timetable: TimetableWithTeacherAndSubject) {
     this.teacherId = timetable.teacher.id
     this.teacherName = timetable.teacher.name
     this.teacherFullName = timetable.teacher.fullName

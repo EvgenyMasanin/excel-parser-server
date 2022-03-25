@@ -1,5 +1,6 @@
+import { AtGuard } from './common/guards/at.guard'
 import { AppModule } from './app.module'
-import { NestFactory } from '@nestjs/core'
+import { NestFactory, Reflector } from '@nestjs/core'
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger'
 
 async function start() {
@@ -13,10 +14,13 @@ async function start() {
     .addTag('Test API')
     .build()
 
-    app.enableCors()
+  app.enableCors()
 
   const document = SwaggerModule.createDocument(app, config)
   SwaggerModule.setup('/api/docs', app, document)
+
+  const reflector = new Reflector()
+  app.useGlobalGuards(new AtGuard(reflector))
 
   await app.listen(PORT, () => console.log(`Server started on port = ${PORT}`))
 }

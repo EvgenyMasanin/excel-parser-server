@@ -13,6 +13,11 @@ import { TeacherToSubject } from './teachers/entities/teacher-to-subject.entity'
 import { Timetable } from './timetable/entities/timetable.entity'
 import { MistakeFinderModule } from './mistake-finder/mistake-finder.module'
 import { SubjectHours } from './subjects/entities/subject-hours.entity'
+import { AuthModule } from './auth/auth.module'
+import { UserModule } from './user/user.module'
+import { User } from './user/entities/user.entity'
+import { RoleModule } from './role/role.module'
+import { Role } from './role/entities/role.entity'
 
 @Module({
   controllers: [],
@@ -28,7 +33,7 @@ import { SubjectHours } from './subjects/entities/subject-hours.entity'
       username: process.env.POSTGRES_USER,
       password: process.env.POSTGRES_PASSWORD,
       database: process.env.POSTGRES_DB,
-      entities: [Teacher, Subject, TeacherToSubject, Group, Timetable, SubjectHours],
+      entities: [Teacher, User, Role, Subject, TeacherToSubject, Group, Timetable, SubjectHours],
       synchronize: true,
     }),
     ExcelModule,
@@ -37,6 +42,9 @@ import { SubjectHours } from './subjects/entities/subject-hours.entity'
     GroupsModule,
     TimetableModule,
     MistakeFinderModule,
+    AuthModule,
+    UserModule,
+    RoleModule,
   ],
 })
 export class AppModule {}

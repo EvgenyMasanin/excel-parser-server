@@ -39,4 +39,10 @@ export class AuthController {
   ) {
     return await this.authService.refreshTokens(userId, refreshToken)
   }
+
+  @Get('me')
+  @HttpCode(HttpStatus.OK)
+  async getMe(@GetCurrentUserId() userId: number) {
+    return await this.authService.getMe(userId)
+  }
 }

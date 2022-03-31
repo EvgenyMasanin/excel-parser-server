@@ -40,6 +40,7 @@ export class AuthService {
 
   async signin({ email, password }: AuthDto): Promise<UserWithTokens> {
     const user = await this.userService.findOneByEmail(email)
+
     if (!user) throw new ForbiddenException('Access denied1')
 
     const passwordMatches = await bcrypt.compare(password, user.password)
@@ -63,8 +64,25 @@ export class AuthService {
     return
   }
 
+  async getMe(userId: number) {
+    const user = await this.userService.findOne(userId)
+
+    if (!user) throw new ForbiddenException('Access denied1')
+
+    const tokens = await this.getTokens(
+      user.id,
+      user.email,
+      user.roles.map((r) => r.name)
+    )
+
+    await this.updateRefreshTokenHash(user.id, tokens.refreshToken)
+
+    return this.getUserWithTokens(user, tokens)
+  }
+
   async refreshTokens(userId: number, rt: string) {
     const user = await this.userService.findOne(userId)
+
     if (!user || !user.refreshToken) throw new ForbiddenException('Access denied3')
 
     const rtMatches = bcrypt.compare(rt, user.refreshToken)
@@ -90,11 +108,12 @@ export class AuthService {
 
     const [at, rt] = await Promise.all([
       this.jwtService.signAsync(tokensPayload, {
-        secret: process.env.PRIVATE_KEY,
-        expiresIn: 60 * 15,
+        secret: `access-${process.env.PRIVATE_KEY}`,
+        // expiresIn: 60 * 15,
+        expiresIn: 60,
       }),
       this.jwtService.signAsync(tokensPayload, {
-        secret: process.env.PRIVATE_KEY,
+        secret: `refresh-${process.env.PRIVATE_KEY}`,
         expiresIn: 60 * 60 * 24 * 7,
       }),
     ])
@@ -105,13 +124,14 @@ export class AuthService {
     }
   }
 
-  getUserWithTokens({ id, email, teacher }: User, tokens: Tokens): UserWithTokens {
+  getUserWithTokens({ id, email, teacher, roles }: User, tokens: Tokens): UserWithTokens {
     return {
       ...tokens,
       user: {
         id,
         email,
         teacher,
+        roles,
       },
     }
   }
@@ -121,7 +141,7 @@ export class AuthService {
     await this.userService.update(userId, { refreshToken: hash })
   }
 
-  hashData(data: string) {
+  private hashData(data: string) {
     return bcrypt.hash(data, 10)
   }
 }

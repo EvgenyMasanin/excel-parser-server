@@ -1,7 +1,7 @@
 import { Semester, semester } from 'src/excel/types'
 import { Group } from 'src/groups/entities/group.entity'
 import { TeacherToSubject } from 'src/teachers/entities/teacher-to-subject.entity'
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
+import { Column, DeleteDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 @Entity()
 export class SubjectHours {
   @PrimaryGeneratedColumn()
@@ -32,4 +32,7 @@ export class SubjectHours {
 
   @Column({ nullable: true, type: 'float' })
   practiceHoursPerWeek: number
+
+  @DeleteDateColumn({select: false})
+  deletedAt?: Date
 }

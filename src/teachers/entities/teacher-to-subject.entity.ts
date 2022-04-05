@@ -1,4 +1,12 @@
-import { Column, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
+import {
+  Column,
+  DeleteDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm'
 import { Teacher } from './teacher.entity'
 import { Subject } from 'src/subjects/entities/subject.entity'
 import { Timetable } from 'src/timetable/entities/timetable.entity'
@@ -28,4 +36,7 @@ export class TeacherToSubject {
 
   @OneToMany(() => SubjectHours, (subjectHours) => subjectHours.group)
   subjectHours: SubjectHours[]
+
+  @DeleteDateColumn({ select: false })
+  deleteAt: Date
 }

@@ -24,11 +24,15 @@ export class GroupsService {
     return await this.groupsRepository.findOne(conditions)
   }
 
-  update(id: number, updateGroupDto: UpdateGroupDto) {
-    return `This action updates a #${id} group`
+  async update(id: number, updateGroupDto: UpdateGroupDto) {
+    return await this.groupsRepository.update(id, updateGroupDto)
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} group`
+  async remove(id: number) {
+    const groupToDelete = await this.groupsRepository.findOne(id, {
+      relations: ['subjectHours', 'timetables'],
+    })
+
+    return await this.groupsRepository.softRemove(groupToDelete)
   }
 }

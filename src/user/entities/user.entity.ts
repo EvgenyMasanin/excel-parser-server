@@ -24,7 +24,7 @@ export class User {
   @Column({ nullable: true })
   refreshToken: string
 
-  @ManyToMany(() => Role, { eager: true })
+  @ManyToMany(() => Role, { eager: true, onDelete: 'SET NULL' })
   @JoinTable()
   roles: Role[]
 

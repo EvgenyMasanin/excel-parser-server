@@ -1,7 +1,6 @@
 import { CourseNum } from './../../excel/types/index'
 import { Semester, SubjectTypes } from 'src/excel/types'
 import { SubGroupNumber, WeekDaysEN } from 'src/excel/types'
-import { Group } from 'src/groups/entities/group.entity'
 import { Subject } from 'src/subjects/entities/subject.entity'
 import { Teacher } from 'src/teachers/entities/teacher.entity'
 import { Timetable } from 'src/timetable/entities/timetable.entity'

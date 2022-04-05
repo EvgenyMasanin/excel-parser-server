@@ -1,5 +1,5 @@
 import { SubjectHours } from '../../subjects/entities/subject-hours.entity'
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
+import { Column, DeleteDateColumn, Entity, OneToMany, PrimaryGeneratedColumn } from 'typeorm'
 import { Timetable } from 'src/timetable/entities/timetable.entity'
 import { SubGroupNumber, subGroupNumber } from 'src/excel/types'
 
@@ -16,9 +16,16 @@ export class Group {
   @Column()
   subGroupsCount: SubGroupNumber
 
-  @OneToMany(() => Timetable, (timetable) => timetable.group)
+  @OneToMany(() => Timetable, (timetable) => timetable.group, {
+    cascade: true
+  })
   timetables: Timetable[]
 
-  @OneToMany(() => SubjectHours, (subjectHours) => subjectHours.group)
+  @OneToMany(() => SubjectHours, (subjectHours) => subjectHours.group, {
+    cascade: true
+  })
   subjectHours: SubjectHours[]
+
+  @DeleteDateColumn({select: false})
+  deletedAt?: Date
 }

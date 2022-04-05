@@ -2,6 +2,7 @@ import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/commo
 import { SubjectsService } from './subjects.service'
 import { CreateSubjectDto } from './dto/create-subject.dto'
 import { UpdateSubjectDto } from './dto/update-subject.dto'
+import { Public } from 'src/common/decorators'
 
 @Controller('subjects')
 export class SubjectsController {
@@ -15,6 +16,12 @@ export class SubjectsController {
   @Get()
   findAll() {
     return this.subjectsService.findAll()
+  }
+
+  @Public()
+  @Get('subjects-by-teacher/:id')
+  async findSubjectsByTeacherId(@Param('id') teacherId: number) {
+    return await this.subjectsService.findSubjectsByTeacherId(teacherId)
   }
 
   @Get(':id')

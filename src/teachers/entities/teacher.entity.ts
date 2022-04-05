@@ -1,4 +1,4 @@
-import { Column, Entity, PrimaryGeneratedColumn, OneToMany } from 'typeorm'
+import { Column, Entity, PrimaryGeneratedColumn, OneToMany, DeleteDateColumn } from 'typeorm'
 import { TeacherToSubject } from './teacher-to-subject.entity'
 
 @Entity()
@@ -18,9 +18,11 @@ export class Teacher {
   @Column({ nullable: true })
   fullPosition: string
 
-  @OneToMany(
-    () => TeacherToSubject,
-    (teacherToSubject) => teacherToSubject.teacher
-  )
+  @OneToMany(() => TeacherToSubject, (teacherToSubject) => teacherToSubject.teacher, {
+    cascade: true,
+  })
   teacherToSubject: TeacherToSubject[]
+
+  @DeleteDateColumn({ select: false })
+  deletedAt: Date
 }

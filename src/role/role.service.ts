@@ -13,23 +13,23 @@ export class RoleService {
     return 'This action adds a new role'
   }
 
-  findAll() {
+  async findAll() {
     return `This action returns all role`
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} role`
+  async findOne(id: number) {
+    return await this.roleRepository.findOne(id)
   }
 
   async findOneByName(name: string) {
     return await this.roleRepository.findOne({ name })
   }
 
-  update(id: number, updateRoleDto: UpdateRoleDto) {
+  async update(id: number, updateRoleDto: UpdateRoleDto) {
     return `This action updates a #${id} role`
   }
 
-  remove(id: number) {
+  async remove(id: number) {
     return `This action removes a #${id} role`
   }
 }

@@ -157,19 +157,19 @@ export class TimetableService {
     ])
   }
 
-  findAll() {
-    return `This action returns all timetable`
+  async findAll() {
+    return await this.timetableRepository.find()
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} timetable`
+  async findOne(id: number) {
+    return await this.timetableRepository.findOne(id)
   }
 
-  update(id: number, updateTimetableDto: UpdateTimetableDto) {
-    return `This action updates a #${id} timetable`
+  async update(id: number, updateTimetableDto: UpdateTimetableDto) {
+    return await this.timetableRepository.update(id, updateTimetableDto)
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} timetable`
+  async remove(id: number) {
+    return await this.timetableRepository.softDelete(id)
   }
 }

@@ -43,6 +43,7 @@ export class MistakeFinderService {
 
       const { teacher, subject } = await this.teacherService.findOneTeacherToSubject({
         relations: ['teacher', 'subject'],
+        withDeleted: true,
         where: {
           id: teacherToSubjectId,
         },

@@ -1,4 +1,11 @@
-import { Column, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
+import {
+  Column,
+  DeleteDateColumn,
+  Entity,
+  JoinColumn,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from 'typeorm'
 import { Group } from 'src/groups/entities/group.entity'
 import { TeacherToSubject } from 'src/teachers/entities/teacher-to-subject.entity'
 import {
@@ -8,7 +15,6 @@ import {
   WeekType,
   WeekDaysEN,
   subjectTypes,
-  subGroupNumber,
   SubGroupNumber,
   semester,
   weekType,
@@ -66,4 +72,7 @@ export class Timetable {
 
   @Column({ nullable: true })
   campus: number
+
+  @DeleteDateColumn({ select: false })
+  deletedAt?: Date
 }

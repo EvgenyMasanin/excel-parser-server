@@ -67,11 +67,16 @@ export class TeachersService {
     return this.teacherRepository.findOne(id)
   }
 
-  update(id: number, updateTeacherDto: UpdateTeacherDto) {
-    return `This action updates a #${id} teacher`
+  async update(id: number, updateTeacherDto: UpdateTeacherDto) {
+    const updatedTeacher = await this.teacherRepository.update(id, updateTeacherDto)
+    return updatedTeacher
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} teacher`
+  async remove(id: number) {
+    const teacherToDelete = await this.teacherRepository.findOne(id, {
+      relations: ['teacherToSubject'],
+    })
+
+    return await this.teacherRepository.softRemove(teacherToDelete)
   }
 }

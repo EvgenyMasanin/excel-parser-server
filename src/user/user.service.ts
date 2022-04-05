@@ -29,7 +29,18 @@ export class UserService {
     return await this.userRepository.findOne(userId)
   }
 
+  async findAll() {
+    return await this.userRepository.find({
+      select: ['id', 'email'],
+    })
+  }
+
   async update(userId: number, partialEntity: QueryDeepPartialEntity<User>) {
     return await this.userRepository.update(userId, partialEntity)
   }
+
+  async remove(userId: number) {
+    return await this.userRepository.softDelete(userId)
+  }
+
 }

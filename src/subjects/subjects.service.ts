@@ -1,13 +1,16 @@
-import { Group } from 'src/groups/entities/group.entity';
-import { CreateSubjectHoursDto } from './dto/create-subject-hours.dto';
+import { Semester } from './../excel/types/timetable.types'
+import { Timetable } from './../timetable/entities/timetable.entity'
+import { CreateSubjectHoursDto } from './dto/create-subject-hours.dto'
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { FindConditions, FindManyOptions, Repository } from 'typeorm'
 import { CreateSubjectDto } from './dto/create-subject.dto'
 import { UpdateSubjectDto } from './dto/update-subject.dto'
 import { SubjectHours } from './entities/subject-hours.entity'
-import { Subject } from './entities/subject.entity'
-import { Teacher } from 'src/teachers/entities/teacher.entity';
+import { Subject, SubjectWithAdditionData, SubjectWithTimetables } from './entities/subject.entity'
+import { Teacher } from 'src/teachers/entities/teacher.entity'
+import { WeekType } from 'src/excel/types'
+import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity'
 
 @Injectable()
 export class SubjectsService {
@@ -57,15 +60,67 @@ export class SubjectsService {
     return await this.subjectHoursRepository.find(options)
   }
 
+  async findSubjectsByTeacherId(teacherId: number): Promise<SubjectWithAdditionData[]> {
+    const subjects = (await this.subjectRepository
+      .createQueryBuilder('subject')
+      .leftJoin('subject.teacherToSubject', 'teacherToSubject')
+      .leftJoinAndMapMany(
+        'subject.timetables',
+        Timetable,
+        'timetable',
+        'timetable.teacherToSubjectId = teacherToSubject.id'
+      )
+      .leftJoinAndSelect('timetable.group', 'group')
+      .where('teacherToSubject.teacherId = :teacherId', { teacherId: teacherId })
+      .getMany()) as SubjectWithTimetables[]
+    console.log('🚀 ~ findSubjectsByTeacherId ~ subjects', teacherId, subjects)
+
+    const clearSubjects = subjects.map<SubjectWithAdditionData>(
+      ({ id, name, teacherToSubject, timetables }) => {
+        console.log('🚀 ~ clearSubjects ~ timetables', timetables)
+
+        const initAdditionData = {
+          groups: new Set<string>(),
+          semesters: new Set<Semester>(),
+          weekTypes: new Set<WeekType>(),
+        }
+
+        const additionData: typeof initAdditionData = timetables.reduce(
+          (additionData, timetable) => {
+            additionData.groups.add(timetable.group.name)
+            additionData.semesters.add(timetable.semester)
+            additionData.weekTypes.add(timetable.weekType)
+            return additionData
+          },
+          initAdditionData
+        )
+
+        return {
+          id,
+          name,
+          teacherToSubject,
+          groups: [...additionData.groups],
+          semesters: [...additionData.semesters],
+          weekTypes: [...additionData.weekTypes],
+        }
+      }
+    )
+    return clearSubjects
+  }
+
   findAll() {
     return `This action returns all subjects`
   }
 
-  update(id: number, updateSubjectDto: UpdateSubjectDto) {
-    return `This action updates a #${id} subject`
+  async update(subjectId: number, partialEntity: QueryDeepPartialEntity<Subject>) {
+    return await this.subjectRepository.update(subjectId, partialEntity)
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} subject`
+  async remove(subjectId: number) {
+    const subjectToDelete = await this.subjectRepository.findOne(subjectId, {
+      relations: ['teacherToSubject'],
+    })
+
+    return await this.subjectRepository.softRemove(subjectToDelete)
   }
 }

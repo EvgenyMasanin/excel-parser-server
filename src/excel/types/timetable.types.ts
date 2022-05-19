@@ -47,6 +47,15 @@ export enum WeekDaysMap {
   'Суббота' = 'saturday',
 }
 
+export enum WeekDaysMapEN {
+  'monday' = 'Понедельник',
+  'tuesday' = 'Вторник',
+  'wednesday' = 'Среда',
+  'thursday' = 'Четверг',
+  'friday' = 'Пятница',
+  'saturday' = 'Суббота',
+}
+
 export const weekDaysRU = [
   'Понедельник',
   'Вторник',
@@ -61,3 +70,9 @@ export type WeekDaysEN = `${WeekDaysMap}`
 
 export const weekType = ['up', 'down', 'up/down'] as const
 export type WeekType = typeof weekType[number]
+
+export enum WeekTypeMap {
+  'up' = 'Верхняя',
+  'down' = 'Нижняя',
+  'up/down' = 'Верхняя/Нижняя',
+}

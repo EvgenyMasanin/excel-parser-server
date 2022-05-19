@@ -1,3 +1,4 @@
+import { TimetableFileGeneratorService } from './timetable-file-generator.service'
 import { Injectable } from '@nestjs/common'
 import xlsx from 'xlsx'
 import { TeachersService } from './teachers.service'
@@ -15,7 +16,8 @@ export class ExcelService {
     private readonly subjectService: SubjectsService,
     private readonly teachersPayloadService: TeachersPayloadService,
     private readonly timetableService: TimetableService,
-    private readonly excelRepositoryService: ExcelRepositoryService
+    private readonly excelRepositoryService: ExcelRepositoryService,
+    private readonly timetableFileGeneratorService: TimetableFileGeneratorService
   ) {}
 
   getStaffInfoTest() {
@@ -63,6 +65,7 @@ export class ExcelService {
     const testDataTeachers = this.teachersService.setLessonDataToTeachers(teachers1, timeTable)
 
     // await this.excelRepositoryService.saveToDB(testDataTeachers)
+    await this.timetableFileGeneratorService.generate('first')
     // return teachers1
     return testDataTeachers
   }
@@ -78,6 +81,64 @@ export class ExcelService {
 
     return files.map((file) => {
       const table = xlsx.readFile(file)
+      const timeTable = this.timetableService.getTimetable(
+        this.excelHelperService.toTableFormat(table.Sheets['Table 1']),
+        table.Sheets['Table 1']['!merges']
+      )
+      return timeTable
+    })
+  }
+
+  async getStaffInfoTestWithFiles(
+    fileWithPayload: Express.Multer.File,
+    filesWithTimetables: Express.Multer.File[]
+  ) {
+    const teacherInfoFilePath = 'static/Staff_of_the_department_ASU.xlsm'
+    const teacherPayloadFilePath = 'static/staff.xlsm'
+
+    const teachersInfoFile = xlsx.readFile(teacherInfoFilePath)
+    const teachersPayloadFile = xlsx.readFile(teacherPayloadFilePath)
+    const fileWithPayloadReaded = xlsx.read(fileWithPayload.buffer)
+    // const teachersInfoFile = xlsx.read(teacherInfoFile.buffer)
+    // const teachersPayloadFile = xlsx.read(teacherPayloadFile.buffer)
+
+    const firstSemesterData = fileWithPayloadReaded.Sheets['СведенияОсень']
+    const secondSemesterData = fileWithPayloadReaded.Sheets['СведенияВесна']
+
+    const teachersPayloadData = fileWithPayloadReaded.Sheets['Распределение РБ']
+
+    const firstSemesterTable = this.excelHelperService.toTableFormat(firstSemesterData)
+    const secondSemesterTable = this.excelHelperService.toTableFormat(secondSemesterData)
+
+    const teachersPayloadTable = this.excelHelperService.toTableFormat(teachersPayloadData)
+
+    const firstSemesterTeachers = this.teachersService.getTeachers(firstSemesterTable, 'first')
+    const secondSemesterTeachers = this.teachersService.getTeachers(secondSemesterTable, 'second')
+    const teachers = this.teachersService.mergeTeachers(
+      firstSemesterTeachers,
+      secondSemesterTeachers
+    )
+
+    const teachersPayload = this.teachersPayloadService.getTeachersPayload(teachersPayloadTable)
+
+    const teachers1 = this.subjectService.setHoursPerSemester(teachers, teachersPayload)
+    // const teachers1 = this.subjectService.setHoursPerSemester(
+    //   firstSemesterTeachers,
+    //   teachersPayload
+    // )
+    const timeTable = this.getTimeTableTestWithFiles(filesWithTimetables)
+
+    const testDataTeachers = this.teachersService.setLessonDataToTeachers(teachers1, timeTable)
+
+    // await this.excelRepositoryService.saveToDB(testDataTeachers)
+    await this.timetableFileGeneratorService.generate('first')
+    // return teachers1
+    return testDataTeachers
+  }
+
+  getTimeTableTestWithFiles(filesWithTimetables: Express.Multer.File[]) {
+    return filesWithTimetables.map((file) => {
+      const table = xlsx.read(file.buffer)
       const timeTable = this.timetableService.getTimetable(
         this.excelHelperService.toTableFormat(table.Sheets['Table 1']),
         table.Sheets['Table 1']['!merges']

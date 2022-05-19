@@ -9,12 +9,14 @@ import { Role } from './entities/role.entity'
 export class RoleService {
   constructor(@InjectRepository(Role) private readonly roleRepository: Repository<Role>) {}
 
-  create(createRoleDto: CreateRoleDto) {
-    return 'This action adds a new role'
+  async create(createRoleDto: CreateRoleDto) {
+    console.log('🚀 ~ create ~ createRoleDto', createRoleDto)
+    //FIXME: clear table
+    return await this.roleRepository.create(createRoleDto)
   }
 
   async findAll() {
-    return `This action returns all role`
+    return await this.roleRepository.find()
   }
 
   async findOne(id: number) {
@@ -26,10 +28,10 @@ export class RoleService {
   }
 
   async update(id: number, updateRoleDto: UpdateRoleDto) {
-    return `This action updates a #${id} role`
+    return await this.roleRepository.update(id, updateRoleDto)
   }
 
   async remove(id: number) {
-    return `This action removes a #${id} role`
+    return await this.roleRepository.delete(id)
   }
 }

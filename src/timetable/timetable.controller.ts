@@ -13,13 +13,13 @@ export class TimetableController {
   }
 
   @Get()
-  getTeachersTimetable(@Query('teacher_id') teacherId: string) {
-    return this.timetableService.getTeachersTimetable(+teacherId)
-  }
-
-  @Get()
   findAll() {
     return this.timetableService.findAll()
+  }
+
+  @Get('by-teacher')
+  getTeachersTimetable(@Query('teacher_id') teacherId: string) {
+    return this.timetableService.getTeachersTimetable(+teacherId)
   }
 
   @Get(':id')

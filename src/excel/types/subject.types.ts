@@ -25,4 +25,10 @@ export interface GroupData {
 export const subjectTypes = ['lecture', 'practice', 'laboratory'] as const
 export type SubjectTypes = typeof subjectTypes[number]
 
+export enum SubjectTypesMap {
+  'lecture' = 'Лекция',
+  'practice' = 'Практика',
+  'laboratory' = 'Лабораторная',
+}
+
 export type SubjectHours = Record<SubjectTypes, number>

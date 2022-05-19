@@ -1,3 +1,4 @@
+import { TimetableFileGeneratorService } from './timetable-file-generator.service';
 import { TimetableModule } from 'src/timetable/timetable.module'
 import { GroupsModule } from './../groups/groups.module'
 import { TimetableService } from './timetable.service'
@@ -21,6 +22,7 @@ import { SubjectsModule } from 'src/subjects/subjects.module'
     SubjectsService,
     TeachersPayloadService,
     TimetableService,
+    TimetableFileGeneratorService
   ],
   controllers: [ExcelController],
   exports: [ExcelService],

@@ -108,8 +108,8 @@ export class SubjectsService {
     return clearSubjects
   }
 
-  findAll() {
-    return `This action returns all subjects`
+  async findAll() {
+    return await this.subjectRepository.find()
   }
 
   async update(subjectId: number, partialEntity: QueryDeepPartialEntity<Subject>) {

@@ -30,7 +30,10 @@ export class TeachersService {
   }
 
   async findAllTeachersToSubjects() {
-    return await this.teacherToSubjectRepository.find()
+    const teacherToSubjects = await this.teacherToSubjectRepository.find({
+      relations: ['subject', 'teacher'],
+    })
+    return teacherToSubjects.map(({ id, teacher, subject }) => ({ id, teacher, subject }))
   }
 
   async findAllTeacherToSubjectByTeacherId(teacherId: number) {

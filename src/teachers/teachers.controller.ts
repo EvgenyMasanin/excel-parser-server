@@ -17,7 +17,7 @@ export class TeachersController {
     return this.teachersService.findAll()
   }
 
-  @Get('teachers-to-subjects')
+  @Get('teacher-to-subject')
   findAllTeachersToSubjects() {
     return this.teachersService.findAllTeachersToSubjects()
   }

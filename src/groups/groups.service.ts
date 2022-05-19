@@ -16,8 +16,8 @@ export class GroupsService {
     return await this.groupsRepository.save(createGroupDto)
   }
 
-  findAll() {
-    return `This action returns all groups`
+  async findAll() {
+    return await this.groupsRepository.find()
   }
 
   async findOne(conditions: FindConditions<Group>) {

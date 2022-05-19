@@ -18,7 +18,6 @@ export class SubjectsController {
     return this.subjectsService.findAll()
   }
 
-  @Public()
   @Get('subjects-by-teacher/:id')
   async findSubjectsByTeacherId(@Param('id') teacherId: number) {
     return await this.subjectsService.findSubjectsByTeacherId(teacherId)

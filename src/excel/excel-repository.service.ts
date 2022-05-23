@@ -21,7 +21,7 @@ export class ExcelRepositoryService {
 
   async saveToDB(teachers: ExcelTeacher[]) {
     for (const { subjects, ...createTeacherDto } of teachers) {
-      const teacherDB = await this.teacherService.create(createTeacherDto)
+      const teacherDB = await this.teacherService.findOneOrCreate(createTeacherDto)
 
       for (const subject of subjects) {
         const subjectDB = await this.subjectService.findOneOrCreate({

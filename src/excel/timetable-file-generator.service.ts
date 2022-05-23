@@ -56,7 +56,6 @@ export class TimetableFileGeneratorService {
         })
       })
     )
-    console.log('🚀 ~ generate ~ test', test)
 
     const workBook = xlsx.utils.book_new()
 

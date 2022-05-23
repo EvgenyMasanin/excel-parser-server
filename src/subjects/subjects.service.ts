@@ -61,6 +61,8 @@ export class SubjectsService {
   }
 
   async findSubjectsByTeacherId(teacherId: number): Promise<SubjectWithAdditionData[]> {
+    if (isNaN(teacherId)) return []
+
     const subjects = (await this.subjectRepository
       .createQueryBuilder('subject')
       .leftJoin('subject.teacherToSubject', 'teacherToSubject')
@@ -73,7 +75,6 @@ export class SubjectsService {
       .leftJoinAndSelect('timetable.group', 'group')
       .where('teacherToSubject.teacherId = :teacherId', { teacherId: teacherId })
       .getMany()) as SubjectWithTimetables[]
-    console.log('🚀 ~ findSubjectsByTeacherId ~ subjects', teacherId, subjects)
 
     const clearSubjects = subjects.map<SubjectWithAdditionData>(
       ({ id, name, teacherToSubject, timetables }) => {

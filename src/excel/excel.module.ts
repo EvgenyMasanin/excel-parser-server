@@ -12,6 +12,7 @@ import { TeachersPayloadService } from './teachers-payload.service'
 import { ExcelRepositoryService } from './excel-repository.service'
 import { TeachersModule } from 'src/teachers/teachers.module'
 import { SubjectsModule } from 'src/subjects/subjects.module'
+import { ClearService } from 'src/clear/clear.service';
 
 @Module({
   providers: [
@@ -22,7 +23,8 @@ import { SubjectsModule } from 'src/subjects/subjects.module'
     SubjectsService,
     TeachersPayloadService,
     TimetableService,
-    TimetableFileGeneratorService
+    TimetableFileGeneratorService,
+    ClearService
   ],
   controllers: [ExcelController],
   exports: [ExcelService],

@@ -19,8 +19,8 @@ export class SubjectsController {
   }
 
   @Get('subjects-by-teacher/:id')
-  async findSubjectsByTeacherId(@Param('id') teacherId: number) {
-    return await this.subjectsService.findSubjectsByTeacherId(teacherId)
+  async findSubjectsByTeacherId(@Param('id') teacherId: string) {
+    return await this.subjectsService.findSubjectsByTeacherId(+teacherId)
   }
 
   @Get(':id')

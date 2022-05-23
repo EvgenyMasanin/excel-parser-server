@@ -17,6 +17,13 @@ export class AuthController {
   }
 
   @Public()
+  @Post('signup-admin')
+  @HttpCode(HttpStatus.CREATED)
+  signupAdmin(@Body() dto: SignupDto) {
+    return this.authService.signup(dto, true)
+  }
+
+  @Public()
   @Post('signin')
   @HttpCode(HttpStatus.OK)
   async signin(@Body() dto: AuthDto) {
@@ -44,5 +51,11 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   async getMe(@GetCurrentUserId() userId: number) {
     return await this.authService.getMe(userId)
+  }
+
+  @Public()
+  @Get('is-admin-exist')
+  async isAdminExist() {
+    return await this.authService.isAdminExist()
   }
 }

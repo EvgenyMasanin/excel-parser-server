@@ -22,6 +22,13 @@ export class TeachersService {
     return await this.teacherRepository.save(createTeacherDto)
   }
 
+  async findOneOrCreate(createTeacherDto: CreateTeacherDto) {
+    return (
+      (await this.teacherRepository.findOne(createTeacherDto)) ||
+      (await this.teacherRepository.save(createTeacherDto))
+    )
+  }
+
   async createTeacherToSubject(createTeacherToSubjectDto: CreateTeacherToSubjectDto) {
     return await this.teacherToSubjectRepository.save(createTeacherToSubjectDto)
   }

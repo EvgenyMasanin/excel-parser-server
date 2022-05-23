@@ -31,10 +31,14 @@ export class TeacherToSubject {
   @JoinColumn({ name: 'subjectId' })
   subject: Subject
 
-  @OneToMany(() => Timetable, (timetable) => timetable.teacherToSubject)
+  @OneToMany(() => Timetable, (timetable) => timetable.teacherToSubject, {
+    cascade: true,
+  })
   timetables: Timetable[]
 
-  @OneToMany(() => SubjectHours, (subjectHours) => subjectHours.group)
+  @OneToMany(() => SubjectHours, (subjectHours) => subjectHours.group, {
+    cascade: true,
+  })
   subjectHours: SubjectHours[]
 
   @DeleteDateColumn({ select: false })

@@ -9,7 +9,7 @@ export class TeachersController {
 
   @Post()
   create(@Body() createTeacherDto: CreateTeacherDto) {
-    return this.teachersService.create(createTeacherDto)
+    return this.teachersService.findOneOrCreate(createTeacherDto)
   }
 
   @Get()

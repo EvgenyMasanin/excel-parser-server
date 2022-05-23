@@ -12,7 +12,12 @@ export class RoleService {
   async create(createRoleDto: CreateRoleDto) {
     console.log('🚀 ~ create ~ createRoleDto', createRoleDto)
     //FIXME: clear table
-    return await this.roleRepository.create(createRoleDto)
+
+    return await this.roleRepository.save(createRoleDto)
+  }
+
+  async findMany(rolesIds: number[]) {
+    return await this.roleRepository.findByIds(rolesIds)
   }
 
   async findAll() {

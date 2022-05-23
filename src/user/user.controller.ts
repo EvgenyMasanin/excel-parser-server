@@ -1,4 +1,4 @@
-import { Body, Controller, Delete, Get, Param, Patch } from '@nestjs/common'
+import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common'
 import { UpdateUserDto } from './dto/update-user.dto'
 import { UserService } from './user.service'
 
@@ -15,9 +15,24 @@ export class UserController {
     return await this.userService.findOne(id)
   }
 
+  @Post()
+  async create(@Body() { email, password, rolesId, teacherId }: UpdateUserDto) {
+    return await this.userService.create({
+      email,
+      password,
+      teacherId,
+      rolesId,
+    })
+  }
+
   @Patch(':id')
-  update(@Param('id') id: string, @Body() updateUserDto: UpdateUserDto) {
-    return this.userService.update(+id, updateUserDto)
+  update(@Param('id') id: string, @Body() { email, password, rolesId, teacherId }: UpdateUserDto) {
+    return this.userService.update(+id, {
+      email,
+      password,
+      teacherId,
+      roles: rolesId.map((id) => ({ id })),
+    })
   }
 
   @Delete(':id')

@@ -28,10 +28,10 @@ export class User {
   @JoinTable()
   roles: Role[]
 
-  @Column()
+  @Column({ nullable: true })
   teacherId: number
 
-  @OneToOne(() => Teacher, { eager: true })
+  @OneToOne(() => Teacher, { eager: true, nullable: true })
   @JoinColumn({ name: 'teacherId' })
   teacher: Teacher
 }

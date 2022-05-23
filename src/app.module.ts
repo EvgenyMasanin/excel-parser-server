@@ -18,6 +18,7 @@ import { UserModule } from './user/user.module'
 import { User } from './user/entities/user.entity'
 import { RoleModule } from './role/role.module'
 import { Role } from './role/entities/role.entity'
+import { ClearModule } from './clear/clear.module';
 
 @Module({
   controllers: [],
@@ -45,6 +46,7 @@ import { Role } from './role/entities/role.entity'
     AuthModule,
     UserModule,
     RoleModule,
+    ClearModule,
   ],
 })
 export class AppModule {}

@@ -82,13 +82,14 @@ export class TimetableService {
   }
 
   async getTeachersTimetable(teacherId: number) {
+    const week = this.getWeek()
+
+    if (isNaN(teacherId)) return week
+
     const teacherToSubjectsIds = (
       await this.teacherService.findAllTeacherToSubjectByTeacherId(teacherId)
     ).map((t) => t.id)
-
     const timetables = await this.findAllTimetablesByTeacherToSubjects(teacherToSubjectsIds)
-
-    const week = this.getWeek()
 
     const weekTimetable = timetables.reduce(
       // eslint-disable-next-line @typescript-eslint/no-unused-vars

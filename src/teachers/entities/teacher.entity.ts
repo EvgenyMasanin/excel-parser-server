@@ -20,6 +20,7 @@ export class Teacher {
 
   @OneToMany(() => TeacherToSubject, (teacherToSubject) => teacherToSubject.teacher, {
     cascade: true,
+    
   })
   teacherToSubject: TeacherToSubject[]
 

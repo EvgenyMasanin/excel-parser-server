@@ -11,20 +11,19 @@ import { User } from 'src/user/entities/user.entity'
 export class AuthService {
   constructor(private readonly userService: UserService, private readonly jwtService: JwtService) {}
 
-  async signup(dto: SignupDto): Promise<UserWithTokens> {
-    const hash = await this.hashData(dto.password)
-
+  async signup(dto: SignupDto, isAdmin?: boolean): Promise<UserWithTokens> {
     if (await this.userService.findOneByEmail(dto.email))
       throw new UnauthorizedException('This email is already used')
 
-    const newUser = await this.userService.findOne(
-      (
-        await this.userService.create({
-          email: dto.email,
-          password: hash,
-          teacherId: dto.teacherId,
-        })
-      ).id
+    const hash = await this.hashData(dto.password)
+
+    if (isAdmin && (await this.isAdminExist()).isAdminExist) {
+      throw new UnauthorizedException('Admin already exists')
+    }
+
+    const newUser = await this.userService.create(
+      { email: dto.email, password: hash, teacherId: dto.teacherId || null },
+      isAdmin
     )
 
     const tokens = await this.getTokens(
@@ -41,10 +40,11 @@ export class AuthService {
   async signin({ email, password }: AuthDto): Promise<UserWithTokens> {
     const user = await this.userService.findOneByEmail(email)
 
-    if (!user) throw new ForbiddenException('Access denied1')
+    if (!user) throw new ForbiddenException('Access denied')
 
     const passwordMatches = await bcrypt.compare(password, user.password)
-    if (!passwordMatches) throw new ForbiddenException('Access denied2')
+    
+    if (!passwordMatches) throw new ForbiddenException('Access denied')
 
     const tokens = await this.getTokens(
       user.id,
@@ -61,13 +61,12 @@ export class AuthService {
     await this.userService.update(userId, {
       refreshToken: null,
     })
-    return
   }
 
   async getMe(userId: number) {
     const user = await this.userService.findOne(userId)
 
-    if (!user) throw new ForbiddenException('Access denied1')
+    if (!user) throw new ForbiddenException('Access denied')
 
     const tokens = await this.getTokens(
       user.id,
@@ -83,10 +82,10 @@ export class AuthService {
   async refreshTokens(userId: number, rt: string) {
     const user = await this.userService.findOne(userId)
 
-    if (!user || !user.refreshToken) throw new ForbiddenException('Access denied3')
+    if (!user || !user.refreshToken) throw new ForbiddenException('Access denied')
 
     const rtMatches = bcrypt.compare(rt, user.refreshToken)
-    if (!rtMatches) throw new ForbiddenException('Access denied4')
+    if (!rtMatches) throw new ForbiddenException('Access denied')
 
     const tokens = await this.getTokens(
       user.id,
@@ -143,5 +142,9 @@ export class AuthService {
 
   private hashData(data: string) {
     return bcrypt.hash(data, 10)
+  }
+
+  async isAdminExist() {
+    return await this.userService.isAdminExist()
   }
 }

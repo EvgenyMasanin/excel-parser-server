@@ -1,13 +1,15 @@
-import { TimetableFileGeneratorService } from './timetable-file-generator.service'
 import { Injectable, InternalServerErrorException } from '@nestjs/common'
 import xlsx from 'xlsx'
 import { TeachersService } from './teachers.service'
 import { SubjectsService } from './subjects.service'
+import { ClearService } from 'src/clear/clear.service'
 import { TimetableService } from './timetable.service'
 import { ExcelHelperService } from './excel-helper.service'
 import { TeachersPayloadService } from './teachers-payload.service'
 import { ExcelRepositoryService } from './excel-repository.service'
-import { ClearService } from 'src/clear/clear.service'
+import { TimetableFileGeneratorService } from './timetable-file-generator.service'
+import { createReadStream, readdirSync, statSync } from 'fs'
+import path from 'path'
 
 @Injectable()
 export class ExcelService {
@@ -149,5 +151,29 @@ export class ExcelService {
       )
       return timeTable
     })
+  }
+
+  async getFileWithTimetable() {
+    const dirPath = path.join(process.cwd(), '/static/timetables')
+
+    const fileNames = readdirSync(dirPath)
+
+    if (fileNames.length === 0) {
+      await this.timetableFileGeneratorService.generate('first')
+      return await this.getFileWithTimetable()
+    }
+    
+    const files = fileNames.map((fileName) => {
+      const fileStat = statSync(path.join(dirPath, fileName))
+      return {
+        name: fileName,
+        birthtime: Date.now() - fileStat.birthtimeMs,
+      }
+    })
+
+    const sorted = files.sort((a, b) => a.birthtime - b.birthtime)
+    const youngestFile = sorted[0]
+    const fileReadStream = createReadStream(path.join(dirPath, youngestFile.name))
+    return { fileReadStream, fileName: youngestFile.name }
   }
 }

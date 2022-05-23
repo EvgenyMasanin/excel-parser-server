@@ -43,10 +43,10 @@ export class TimetableFileGeneratorService {
                   день: currentWeekDay === day ? '' : WeekDaysMapEN[day],
                   пара: lessonNumber,
                   неделя: WeekTypeMap[weekType],
+                  курс: course,
                   предмет: subject.name,
                   ['тип занятия']: SubjectTypesMap[subjectType],
                   группы: groups.map(({ name }) => name).join(', '),
-                  курс: course,
                   аудитория: `${auditorium}/${campus}`,
                 })
                 currentTeacherName = name

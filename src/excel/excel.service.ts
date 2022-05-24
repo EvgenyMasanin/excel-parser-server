@@ -68,8 +68,8 @@ export class ExcelService {
 
     const testDataTeachers = this.teachersService.setLessonDataToTeachers(teachers1, timeTable)
 
-    await this.excelRepositoryService.saveToDB(testDataTeachers)
-    await this.timetableFileGeneratorService.generate('first')
+    // await this.excelRepositoryService.saveToDB(testDataTeachers)
+    // await this.timetableFileGeneratorService.generate('first')
     // return teachers1
     return testDataTeachers
   }

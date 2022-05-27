@@ -154,7 +154,7 @@ export class ExcelService {
   }
 
   async getFileWithTimetable() {
-    const dirPath = path.join(process.cwd(), '/static/timetables')
+    const dirPath = path.join(process.cwd(), '/static-files/timetables')
 
     const fileNames = readdirSync(dirPath)
 

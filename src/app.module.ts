@@ -19,6 +19,7 @@ import { User } from './user/entities/user.entity'
 import { RoleModule } from './role/role.module'
 import { Role } from './role/entities/role.entity'
 import { ClearModule } from './clear/clear.module';
+import { HashModule } from './hash/hash.module';
 
 @Module({
   controllers: [],
@@ -47,6 +48,7 @@ import { ClearModule } from './clear/clear.module';
     UserModule,
     RoleModule,
     ClearModule,
+    HashModule,
   ],
 })
 export class AppModule {}

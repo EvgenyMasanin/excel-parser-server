@@ -1,26 +1,24 @@
-import { UpdateUserDto } from './dto/update-user.dto'
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
-import { RoleService } from 'src/role/role.service'
 import { DeepPartial, Repository } from 'typeorm'
-import { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity'
-import { createUserDto } from './dto/create-user.dto'
-import { User } from './entities/user.entity'
-import { Teacher } from 'src/teachers/entities/teacher.entity'
 import { BasicRoles } from 'src/common/decorators/role.decorator'
-import * as bcrypt from 'bcrypt'
+import { RoleService } from 'src/role/role.service'
+import { HashService } from 'src/hash/hash.service'
+import { User } from './entities/user.entity'
+import { createUserDto } from './dto/create-user.dto'
 
 @Injectable()
 export class UserService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
-    private readonly roleService: RoleService
+    private readonly roleService: RoleService,
+    private readonly hashService: HashService
   ) {}
 
   async create({ rolesId, ...dto }: createUserDto, isAdmin?: boolean) {
     const newUser = this.userRepository.create(dto)
 
-    newUser.password = await bcrypt.hash(dto.password, 10)
+    newUser.password = await this.hashService.hashData(dto.password)
 
     if (rolesId?.length > 0) {
       newUser.roles = await this.roleService.findMany(rolesId)

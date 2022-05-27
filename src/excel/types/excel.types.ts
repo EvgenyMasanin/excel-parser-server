@@ -1,6 +1,6 @@
 import { Range } from 'xlsx'
-import { SubjectHours } from './subject.types'
-import { Semester } from './timetable.types'
+import { SubjectHours, SubjectTypesMap } from './subject.types'
+import { CourseNum, Semester, WeekDaysMapEN, WeekTypeMap } from './timetable.types'
 
 type ColumnName = 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | 'H' | 'I' | 'J' | 'K' | 'L' | 'M'
 
@@ -22,3 +22,15 @@ export interface ExcelTeacherPayload {
 export type Merge = Range
 
 export type Merges = Array<Merge>
+
+export interface Row {
+  ['Имя преподавателя']: string
+  день: WeekDaysMapEN
+  пара: number
+  неделя: WeekTypeMap
+  курс: CourseNum
+  предмет: string
+  ['тип занятия']: SubjectTypesMap
+  группы: string
+  аудитория: string
+}

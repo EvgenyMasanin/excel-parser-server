@@ -22,8 +22,14 @@ export class MistakeFinderService {
 
   async findMistakes() {
     return {
-      mistakesWithCountOfLessons: await this.findMistakesWithCountOfLessons(),
-      timetableMistakes: await this.findTimetableMistakes(),
+      mistakesWithCountOfLessons: (await this.findMistakesWithCountOfLessons()).map(
+        (mistake, i) => ({ id: i, ...mistake })
+      ),
+      missingCampusOrAuditorium: (await this.findTimetableMistakes()).map((mistake, i) => ({
+        id: i,
+        ...mistake,
+      })),
+      sameAuditorium: [],
     }
   }
 
@@ -96,6 +102,7 @@ export class MistakeFinderService {
 
     return this.filterMistakes(mistakes)
   }
+
   private getMistakeIfTimetablesEmpty(
     timetables: Timetable[],
     group: Group,

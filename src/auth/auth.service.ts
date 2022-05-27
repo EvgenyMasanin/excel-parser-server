@@ -1,28 +1,33 @@
 import { ForbiddenException, Injectable, UnauthorizedException } from '@nestjs/common'
 import { AuthDto, SignupDto } from './dto/auth.dto'
-import * as bcrypt from 'bcrypt'
 import { UserService } from 'src/user/user.service'
 import { Tokens } from './types'
 import { JwtService } from '@nestjs/jwt'
 import { UserWithTokens } from './types/signup.types'
 import { User } from 'src/user/entities/user.entity'
+import { HashService } from 'src/hash/hash.service'
 
 @Injectable()
 export class AuthService {
-  constructor(private readonly userService: UserService, private readonly jwtService: JwtService) {}
+  constructor(
+    private readonly userService: UserService,
+    private readonly hashService: HashService,
+    private readonly jwtService: JwtService
+  ) {}
 
-  async signup(dto: SignupDto, isAdmin?: boolean): Promise<UserWithTokens> {
-    if (await this.userService.findOneByEmail(dto.email))
+  async signup(
+    { email, password, teacherId }: SignupDto,
+    isAdmin?: boolean
+  ): Promise<UserWithTokens> {
+    if (await this.userService.findOneByEmail(email))
       throw new UnauthorizedException('This email is already used')
-
-    const hash = await this.hashData(dto.password)
 
     if (isAdmin && (await this.isAdminExist()).isAdminExist) {
       throw new UnauthorizedException('Admin already exists')
     }
 
     const newUser = await this.userService.create(
-      { email: dto.email, password: hash, teacherId: dto.teacherId || null },
+      { email, password, teacherId: teacherId || null },
       isAdmin
     )
 
@@ -42,8 +47,8 @@ export class AuthService {
 
     if (!user) throw new ForbiddenException('Access denied')
 
-    const passwordMatches = await bcrypt.compare(password, user.password)
-    
+    const passwordMatches = await this.hashService.compareData(password, user.password)
+
     if (!passwordMatches) throw new ForbiddenException('Access denied')
 
     const tokens = await this.getTokens(
@@ -84,7 +89,7 @@ export class AuthService {
 
     if (!user || !user.refreshToken) throw new ForbiddenException('Access denied')
 
-    const rtMatches = bcrypt.compare(rt, user.refreshToken)
+    const rtMatches = this.hashService.compareData(rt, user.refreshToken)
     if (!rtMatches) throw new ForbiddenException('Access denied')
 
     const tokens = await this.getTokens(
@@ -141,7 +146,7 @@ export class AuthService {
   }
 
   private hashData(data: string) {
-    return bcrypt.hash(data, 10)
+    return this.hashService.hashData(data)
   }
 
   async isAdminExist() {

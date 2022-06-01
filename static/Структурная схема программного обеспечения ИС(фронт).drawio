@@ -1,4 +1,4 @@
-<mxfile host="app.diagrams.net" modified="2022-06-01T10:08:45.639Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36 OPR/86.0.4363.64" etag="tctneKKyflk5S0w5SYHR" version="18.2.0" type="github">
+<mxfile host="app.diagrams.net" modified="2022-06-01T12:36:29.049Z" agent="5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.127 Safari/537.36 OPR/86.0.4363.64" etag="1PyyX-gSNx6cPq98IiYO" version="18.2.0" type="github">
   <diagram id="_jko6HewPafg15Ug2pHE" name="Page-1">
     <mxGraphModel dx="1237" dy="588" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="827" pageHeight="1169" math="0" shadow="0">
       <root>
@@ -13,7 +13,7 @@
         <mxCell id="sJV38BtzYP66DVxO5tEV-4" value="Библиотеки" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="560" y="160" width="120" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="sJV38BtzYP66DVxO5tEV-5" value="React" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+        <mxCell id="sJV38BtzYP66DVxO5tEV-5" value="nestjs/common" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">
           <mxGeometry x="590" y="210" width="120" height="20" as="geometry" />
         </mxCell>
         <mxCell id="sJV38BtzYP66DVxO5tEV-6" value="reduxjs/toolkit" style="rounded=0;whiteSpace=wrap;html=1;" vertex="1" parent="1">

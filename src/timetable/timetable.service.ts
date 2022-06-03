@@ -5,14 +5,15 @@ import { TeachersService } from 'src/teachers/teachers.service'
 import { Timetable } from './entities/timetable.entity'
 import { Subject } from 'src/subjects/entities/subject.entity'
 import { Teacher } from 'src/teachers/entities/teacher.entity'
-import {
-  TimetableWithSubject,
-  TimetableWithTeacherAndSubject,
-} from 'src/mistake-finder/entities/timetable-mistake'
+
 import { CreateTimetableDto } from './dto/create-timetable.dto'
 import { UpdateTimetableDto } from './dto/update-timetable.dto'
 import objectsEquals from 'src/utils/objects-equals'
 import { Week, WeekTimetable, WeekTimetableGroup } from './types'
+import {
+  TimetableWithSubject,
+  TimetableWithTeacherAndSubject,
+} from 'src/mistake-finder/entities/missing-campus-or-auditorium-mistake'
 
 @Injectable()
 export class TimetableService {
@@ -61,6 +62,26 @@ export class TimetableService {
       )
       .where('timetable.campus = :campus', { campus: null })
       .orWhere('timetable.auditorium = :auditorium', { auditorium: null })
+      .getMany()) as TimetableWithTeacherAndSubject[]
+  }
+
+  async findAllTimetableWithTeacherAndSubject() {
+    return (await this.timetableRepository
+      .createQueryBuilder('timetable')
+      .leftJoinAndSelect('timetable.group', 'group')
+      .leftJoin('timetable.teacherToSubject', 'teacherToSubject')
+      .leftJoinAndMapOne(
+        'timetable.teacher',
+        Teacher,
+        'teacher',
+        'teacher.id = teacherToSubject.teacherId'
+      )
+      .leftJoinAndMapOne(
+        'timetable.subject',
+        Subject,
+        'subject',
+        'subject.id = teacherToSubject.subjectId'
+      )
       .getMany()) as TimetableWithTeacherAndSubject[]
   }
 

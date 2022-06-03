@@ -8,7 +8,7 @@ import { ExcelHelperService } from './excel-helper.service'
 import { TeachersPayloadService } from './teachers-payload.service'
 import { ExcelRepositoryService } from './excel-repository.service'
 import { TimetableFileGeneratorService } from './timetable-file-generator.service'
-import { createReadStream, readdirSync, statSync } from 'fs'
+import { createReadStream, readdirSync, ReadStream, statSync } from 'fs'
 import path from 'path'
 
 @Injectable()
@@ -153,7 +153,7 @@ export class ExcelService {
     })
   }
 
-  async getFileWithTimetable() {
+  async getFileWithTimetable(): Promise<{ fileReadStream: ReadStream; fileName: string }> {
     const dirPath = path.join(process.cwd(), '/static-files/timetables')
 
     const fileNames = readdirSync(dirPath)
@@ -162,7 +162,7 @@ export class ExcelService {
       await this.timetableFileGeneratorService.generate('first')
       return await this.getFileWithTimetable()
     }
-    
+
     const files = fileNames.map((fileName) => {
       const fileStat = statSync(path.join(dirPath, fileName))
       return {
@@ -175,5 +175,11 @@ export class ExcelService {
     const youngestFile = sorted[0]
     const fileReadStream = createReadStream(path.join(dirPath, youngestFile.name))
     return { fileReadStream, fileName: youngestFile.name }
+  }
+
+  async getDesignGuidFile() {
+    const filePath = path.join(process.cwd(), '/static-files/help/design-guide.docx')
+
+    return createReadStream(filePath)
   }
 }

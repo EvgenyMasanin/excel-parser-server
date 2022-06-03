@@ -5,7 +5,6 @@ import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
 import { FindConditions, FindManyOptions, Repository } from 'typeorm'
 import { CreateSubjectDto } from './dto/create-subject.dto'
-import { UpdateSubjectDto } from './dto/update-subject.dto'
 import { SubjectHours } from './entities/subject-hours.entity'
 import { Subject, SubjectWithAdditionData, SubjectWithTimetables } from './entities/subject.entity'
 import { Teacher } from 'src/teachers/entities/teacher.entity'
@@ -78,8 +77,6 @@ export class SubjectsService {
 
     const clearSubjects = subjects.map<SubjectWithAdditionData>(
       ({ id, name, teacherToSubject, timetables }) => {
-        console.log('🚀 ~ clearSubjects ~ timetables', timetables)
-
         const initAdditionData = {
           groups: new Set<string>(),
           semesters: new Set<Semester>(),

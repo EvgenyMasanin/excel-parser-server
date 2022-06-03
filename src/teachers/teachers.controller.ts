@@ -29,7 +29,6 @@ export class TeachersController {
 
   @Patch(':id')
   update(@Param('id') id: string, @Body() updateTeacherDto: UpdateTeacherDto) {
-    console.log('🚀 ~ update ~ updateTeacherDto', updateTeacherDto)
     return this.teachersService.update(+id, updateTeacherDto)
   }
 

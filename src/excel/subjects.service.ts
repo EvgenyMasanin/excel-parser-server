@@ -253,6 +253,7 @@ export class SubjectsService {
     auditorium: number | null
     campus: number | null
   } {
+    console.log('🚀 ~ getAuditoriumAndCampus ~ subjectName', subjectName)
     const auditorium = +subjectName.match(/а\.?\s*\d+/)?.[0].split(/а\.?\s*/)[1] || null
     const campus = auditorium ? +subjectName.match(/\/\d+/)?.[0].slice(1) || 1 : null
     return { auditorium, campus }

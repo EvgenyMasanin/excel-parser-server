@@ -4,13 +4,15 @@ import { SubGroupNumber } from '../excel/types'
 import { Injectable } from '@nestjs/common'
 import { Timetable } from 'src/timetable/entities/timetable.entity'
 import { CountOfLessonsMistake } from './entities/count-of-lessons-mistake'
-import { TimetableMistake } from './entities/timetable-mistake'
 import { TeachersService } from 'src/teachers/teachers.service'
 import { TimetableService } from 'src/timetable/timetable.service'
 import objectsEquals from 'src/utils/objects-equals'
 import { Group } from 'src/groups/entities/group.entity'
 import { Subject } from 'src/subjects/entities/subject.entity'
 import { Teacher } from 'src/teachers/entities/teacher.entity'
+import { MissingCampusOrAuditoriumMistake } from './entities/missing-campus-or-auditorium-mistake'
+import { Mistakes } from './entities/mistakes'
+import { SameAuditoriumMistake } from './entities/same-auditorium-mistake'
 
 @Injectable()
 export class MistakeFinderService {
@@ -20,7 +22,7 @@ export class MistakeFinderService {
     private readonly subjectService: SubjectsService
   ) {}
 
-  async findMistakes() {
+  async findMistakes(): Promise<Mistakes> {
     return {
       mistakesWithCountOfLessons: (await this.findMistakesWithCountOfLessons()).map(
         (mistake, i) => ({ id: i, ...mistake })
@@ -29,7 +31,10 @@ export class MistakeFinderService {
         id: i,
         ...mistake,
       })),
-      sameAuditorium: [],
+      sameAuditorium: (await this.findSameAuditoriumMistakes()).map((mistake, i) => ({
+        id: i,
+        ...mistake,
+      })),
     }
   }
 
@@ -81,14 +86,14 @@ export class MistakeFinderService {
 
       for (const subjectType of subjectTypes) {
         mistakes.push(
-          ...this.getMistakeIfTimetablesEmpty(
-            timetablesByTypes[subjectType],
-            group,
-            teacher,
-            subject,
-            subjectType,
-            hoursPerWeek[`${subjectType}HoursPerWeek`]
-          ),
+          // ...this.getMistakeIfTimetablesEmpty(
+          //   timetablesByTypes[subjectType],
+          //   group,
+          //   teacher,
+          //   subject,
+          //   subjectType,
+          //   hoursPerWeek[`${subjectType}HoursPerWeek`]
+          // ),
           ...(await this.getMistake(
             timetablesByTypes[subjectType],
             teacher,
@@ -161,10 +166,40 @@ export class MistakeFinderService {
     return mistakes
   }
 
+  async findSameAuditoriumMistakes() {
+    const sameAuditoriumMistakes: SameAuditoriumMistake[] = []
+
+    const timetables = await this.timetableService.findAllTimetableWithTeacherAndSubject()
+    timetables.forEach((timetable, i) => {
+      timetables.forEach((timetable2) => {
+        if (timetable.id === timetable2.id) return
+        if (timetable.lessonNumber !== timetable2.lessonNumber) return
+        if (timetable.weekDay !== timetable2.weekDay) return
+        if (timetable.weekType !== timetable2.weekType) return
+        if (timetable.semester !== timetable2.semester) return
+        if (timetable.campus !== timetable2.campus) return
+        if (timetable.auditorium !== timetable2.auditorium) return
+        if (timetable.teacherToSubjectId === timetable2.teacherToSubjectId) return
+        if (
+          sameAuditoriumMistakes.find(
+            ({ timetable1: t1, timetable2: t2 }) =>
+              t1.id === timetable2.id && t2.id === timetable.id
+          )
+        )
+          return
+        sameAuditoriumMistakes.push(new SameAuditoriumMistake(timetable, timetable2))
+      })
+    })
+
+    return sameAuditoriumMistakes
+  }
+
   private async findTimetableMistakes() {
     const timetables = await this.timetableService.findAllTimetableWithMistakes()
 
-    return timetables.map<TimetableMistake>((timetable) => new TimetableMistake(timetable))
+    return timetables.map<MissingCampusOrAuditoriumMistake>(
+      (timetable) => new MissingCampusOrAuditoriumMistake(timetable)
+    )
   }
 
   private filterMistakes(mistakes: CountOfLessonsMistake[]) {

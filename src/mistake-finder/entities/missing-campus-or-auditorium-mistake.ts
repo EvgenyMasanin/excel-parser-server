@@ -1,6 +1,5 @@
-import { CourseNum } from './../../excel/types/index'
 import { Semester, SubjectTypes } from 'src/excel/types'
-import { SubGroupNumber, WeekDaysEN } from 'src/excel/types'
+import { SubGroupNumber, WeekDaysEN, CourseNum, WeekType } from 'src/excel/types'
 import { Subject } from 'src/subjects/entities/subject.entity'
 import { Teacher } from 'src/teachers/entities/teacher.entity'
 import { Timetable } from 'src/timetable/entities/timetable.entity'
@@ -11,7 +10,7 @@ type WithSubject<T extends Timetable> = T & { subject: Subject }
 export type TimetableWithTeacherAndSubject = WithSubject<WithTeacher<Timetable>>
 export type TimetableWithSubject = WithSubject<Timetable>
 
-export class TimetableMistake {
+export class MissingCampusOrAuditoriumMistake {
   readonly teacherId: number
   readonly teacherName: string
   readonly teacherFullName: string
@@ -24,6 +23,7 @@ export class TimetableMistake {
   readonly course: CourseNum
   readonly lessonNumber: number
   readonly weekDay: WeekDaysEN
+  readonly weekType: WeekType
   readonly type: SubjectTypes
   readonly auditorium: number
   readonly campus: number
@@ -44,5 +44,6 @@ export class TimetableMistake {
     this.type = timetable.subjectType
     this.auditorium = timetable.auditorium
     this.campus = timetable.campus
+    this.weekType = timetable.weekType
   }
 }

@@ -5,10 +5,11 @@ import { AuthService } from './auth.service'
 import { AuthController } from './auth.controller'
 import { JwtModule } from '@nestjs/jwt'
 import { HashModule } from 'src/hash/hash.module'
+import { RoleModule } from 'src/role/role.module'
 
 @Module({
   controllers: [AuthController],
   providers: [AuthService, RtJwtStrategy, AtJwtStrategy],
-  imports: [UserModule, HashModule, JwtModule.register({})],
+  imports: [UserModule, HashModule, RoleModule, JwtModule.register({})],
 })
 export class AuthModule {}

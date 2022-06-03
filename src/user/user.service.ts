@@ -43,6 +43,8 @@ export class UserService {
       relations: ['roles'],
     })
 
+    if (users.length === 0) return { isAdminExist: false }
+
     const isAdminExist = users.some((user) =>
       user.roles.some((role) => role.name === BasicRoles.admin)
     )

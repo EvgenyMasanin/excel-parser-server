@@ -82,4 +82,18 @@ export class ExcelController {
 
     return new StreamableFile(fileReadStream)
   }
+
+  @Public()
+  @Get('design-guide')
+  async getDesignGuideFile(@Response({ passthrough: true }) res: Res) {
+    const file = await this.excelService.getDesignGuidFile()
+
+    res.set({
+      'Content-Disposition': 'design guide.docx',
+      'Content-Type': 'application/json',
+      'Access-Control-Expose-Headers': 'Content-Disposition',
+    })
+
+    return new StreamableFile(file)
+  }
 }

@@ -1,13 +1,16 @@
-import { Body, Controller, Get, HttpCode, HttpStatus, Post, Req, UseGuards } from '@nestjs/common'
+import { Body, Controller, Get, HttpCode, HttpStatus, Post, UseGuards } from '@nestjs/common'
 import { AuthService } from './auth.service'
 import { GetCurrentUser, GetCurrentUserId, Public } from 'src/common/decorators'
 import { RtGuard } from './../common/guards/rt.guard'
-import { AtGuard } from './../common/guards/at.guard'
 import { AuthDto, SignupDto } from './dto/auth.dto'
+import { RoleService } from 'src/role/role.service'
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly roleService: RoleService
+  ) {}
 
   @Public()
   @Post('signup')
@@ -19,8 +22,9 @@ export class AuthController {
   @Public()
   @Post('signup-admin')
   @HttpCode(HttpStatus.CREATED)
-  signupAdmin(@Body() dto: SignupDto) {
-    return this.authService.signup(dto, true)
+  async signupAdmin(@Body() dto: SignupDto) {
+    await this.roleService.generateBasicRoles()
+    return await this.authService.signup(dto, true)
   }
 
   @Public()

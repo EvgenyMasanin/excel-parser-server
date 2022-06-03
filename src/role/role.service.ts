@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common'
 import { InjectRepository } from '@nestjs/typeorm'
+import { BasicRoles } from 'src/common/decorators/role.decorator'
 import { Repository } from 'typeorm'
 import { CreateRoleDto } from './dto/create-role.dto'
 import { UpdateRoleDto } from './dto/update-role.dto'
@@ -10,9 +11,6 @@ export class RoleService {
   constructor(@InjectRepository(Role) private readonly roleRepository: Repository<Role>) {}
 
   async create(createRoleDto: CreateRoleDto) {
-    console.log('🚀 ~ create ~ createRoleDto', createRoleDto)
-    //FIXME: clear table
-
     return await this.roleRepository.save(createRoleDto)
   }
 
@@ -38,5 +36,19 @@ export class RoleService {
 
   async remove(id: number) {
     return await this.roleRepository.delete(id)
+  }
+
+  async generateBasicRoles() {
+    if (await this.roleRepository.findOne({ name: BasicRoles.admin })) {
+      return 'Basic roles already generated'
+    }
+
+    const admin: CreateRoleDto = { name: BasicRoles.admin, description: 'Role with full access' }
+    const teacher: CreateRoleDto = { name: BasicRoles.teacher, description: 'Basic role' }
+
+    await this.roleRepository.save(admin)
+    await this.roleRepository.save(teacher)
+
+    return 'Basic roles generated'
   }
 }

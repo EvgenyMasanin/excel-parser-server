@@ -30,11 +30,13 @@ export class TimetableFileGeneratorService {
         Object.entries(timetable).forEach(([day, timetables]) => {
           timetables
             .filter((timetable) => timetable.semester === semester)
+            .sort((a, b) => a.lessonNumber - b.lessonNumber)
             .forEach((timetable) => {
               rows.push(this.createRow(timetable, currentTeacherName, name, currentWeekDay, day))
               currentTeacherName = name
               currentWeekDay = day
             })
+          currentWeekDay = day
         })
       }
 
@@ -75,7 +77,7 @@ export class TimetableFileGeneratorService {
       ['Имя преподавателя']: currentTeacherName === name ? '' : name,
       день: currentWeekDay === day ? '' : WeekDaysMapEN[day],
       пара: lessonNumber,
-      неделя: WeekTypeMap[weekType],
+      неделя: weekType === 'up/down' ? ('' as WeekTypeMap) : WeekTypeMap[weekType],
       курс: course,
       предмет: subject.name,
       ['тип занятия']: SubjectTypesMap[subjectType],

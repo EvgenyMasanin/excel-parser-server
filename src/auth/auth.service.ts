@@ -141,12 +141,8 @@ export class AuthService {
   }
 
   async updateRefreshTokenHash(userId: number, rt: string) {
-    const hash = await this.hashData(rt)
+    const hash = await this.hashService.hashData(rt)
     await this.userService.update(userId, { refreshToken: hash })
-  }
-
-  private hashData(data: string) {
-    return this.hashService.hashData(data)
   }
 
   async isAdminExist() {

@@ -78,6 +78,7 @@ export class TimetableService {
     )
 
     const { course, semester } = this.getCourseAndSemester()
+    console.log('🚀 ~ getTimetable ~ course, semester', course, semester)
 
     this.setGroups()
 
@@ -283,7 +284,9 @@ export class TimetableService {
 
     return {
       semester: SemestersMap[Object.entries(this.table[rowNum + 1])[0][1].split(' ')[1]],
-      course: +Object.entries(this.table[rowNum])[0][1].match(/\d/)[0] as CourseNum,
+      course: +Object.entries(this.table[rowNum])
+        .find(([, value]) => value.startsWith('з'))[1]
+        .match(/\d/)[0] as CourseNum,
     }
   }
 

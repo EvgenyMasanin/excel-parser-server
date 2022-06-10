@@ -102,6 +102,16 @@ export class TeachersService {
               lessons.forEach((lesson, lessonNumber) => {
                 lesson.forEach((group) => {
                   if (groupData.name === group.name) {
+                    if (teacher.name.toLowerCase().startsWith('сад'))
+                      console.log(
+                        '🚀 ~ teachers.forEach ~ teacher',
+                        teacher.name,
+                        subject.name,
+                        group.name,
+                        subject.course,
+                        group.course,
+                        subject.semester === group.semester
+                      )
                     group.subgroupsTimetable.forEach((subGroupData, subGroupNumber) => {
                       if (subject.course === group.course && subject.semester === group.semester) {
                         if (!groupData.subGroups[subGroupNumber]) {

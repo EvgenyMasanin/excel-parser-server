@@ -7,6 +7,7 @@ import { SubjectTypesMap } from './types/subject.types'
 import { WeekDaysMapEN, WeekTypeMap } from './types/timetable.types'
 import { Semester } from './types'
 import { Row } from './types/excel.types'
+import { Teacher } from 'src/teachers/entities/teacher.entity'
 
 @Injectable()
 export class TimetableFileGeneratorService {
@@ -15,45 +16,55 @@ export class TimetableFileGeneratorService {
     private readonly timetableService: TimetableService
   ) {}
 
-  async generate(semester: Semester) {
+  async generate() {
     try {
-      const rows: Row[] = []
+      const rowsFirstSemester: Row[] = []
+      const rowsSecondSemester: Row[] = []
 
       const teachers = await this.teacherService.findAll()
 
-      let currentTeacherName = ''
-      let currentWeekDay = ''
-
-      for (const { id, name } of teachers) {
-        const timetable = await this.timetableService.getTeachersTimetable(id)
-
-        Object.entries(timetable).forEach(([day, timetables]) => {
-          timetables
-            .filter((timetable) => timetable.semester === semester)
-            .sort((a, b) => a.lessonNumber - b.lessonNumber)
-            .forEach((timetable) => {
-              rows.push(this.createRow(timetable, currentTeacherName, name, currentWeekDay, day))
-              currentTeacherName = name
-              currentWeekDay = day
-            })
-          currentWeekDay = day
-        })
-      }
+      await this.setRows(teachers, 'first', rowsFirstSemester)
+      await this.setRows(teachers, 'second', rowsSecondSemester)
 
       const workBook = xlsx.utils.book_new()
 
-      const worksheet = xlsx.utils.json_to_sheet(rows)
-      xlsx.utils.book_append_sheet(workBook, worksheet, 'Расписание')
+      const worksheetFirstSemester = xlsx.utils.json_to_sheet(rowsFirstSemester)
+      const worksheetSecondSemester = xlsx.utils.json_to_sheet(rowsSecondSemester)
+      xlsx.utils.book_append_sheet(workBook, worksheetFirstSemester, 'Расписание осень')
+      xlsx.utils.book_append_sheet(workBook, worksheetSecondSemester, 'Расписание весна')
       const year = new Date().toLocaleString('ru', {
         year: 'numeric',
       })
-      xlsx.writeFile(workBook, `static-files/timetables/timetable(${year}-${semester}).xlsx`)
+      xlsx.writeFile(workBook, `static-files/timetables/timetable(${year}).xlsx`)
 
       return true
     } catch (error) {
       console.log('🚀 ~ generate ~ error', error)
 
       return false
+    }
+  }
+
+  private async setRows(teachers: Teacher[], semester: Semester, rowsFirstSemester: Row[]) {
+    let currentTeacherName = ''
+    let currentWeekDay = ''
+
+    for (const { id, name } of teachers) {
+      const timetable = await this.timetableService.getTeachersTimetable(id)
+
+      Object.entries(timetable).forEach(([day, timetables]) => {
+        timetables
+          .filter((timetable) => timetable.semester === semester)
+          .sort((a, b) => a.lessonNumber - b.lessonNumber)
+          .forEach((timetable) => {
+            rowsFirstSemester.push(
+              this.createRow(timetable, currentTeacherName, name, currentWeekDay, day)
+            )
+            currentTeacherName = name
+            currentWeekDay = day
+          })
+        currentWeekDay = day
+      })
     }
   }
 

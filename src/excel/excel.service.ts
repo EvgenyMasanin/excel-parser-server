@@ -134,7 +134,7 @@ export class ExcelService {
       const dataToDB = this.teachersService.setLessonDataToTeachers(teachersWithFullData, timeTable)
 
       await this.excelRepositoryService.saveToDB(dataToDB)
-      await this.timetableFileGeneratorService.generate('first')
+      await this.timetableFileGeneratorService.generate()
 
       return 'Success'
     } catch (error) {
@@ -159,7 +159,7 @@ export class ExcelService {
     const fileNames = readdirSync(dirPath)
 
     if (fileNames.length === 0) {
-      await this.timetableFileGeneratorService.generate('first')
+      await this.timetableFileGeneratorService.generate()
       return await this.getFileWithTimetable()
     }
 
